@@ -66,6 +66,11 @@ class OneToManyConnectionTable():
 
     @property
     def count(self):
+        """Calculates the number connections defined
+
+        Returns:
+            int: The number of connections
+        """
         return len(self.__connections)
 
 class NodeBuffer():
@@ -91,13 +96,29 @@ class NodeBuffer():
 
     @property
     def node_count(self):
+        """Calculates the number of unique nodes stored in the buffer.
+
+        Returns:
+            int: The number of nodes.
+        """
         return len(self.__nodes)
 
     @property
     def vertex_count(self):
+        """Calculates the number of unique vertices stored in the buffer.
+
+        Returns:
+            int: The number of vertices.
+        """
+
         return len(self.__vertices)
 
     def nodes(self):
+        """Gives access to a copy of all unique nodes in the buffer.
+
+        Returns:
+            List[List[float]]: The nodes as lists of coordinates
+        """
         return self.__nodes.copy()
 
     def __round_vertex(cls, vertex):
@@ -112,9 +133,28 @@ class NodeBuffer():
         return [round(coord, cls.__NODE_ROUND_DIGITS) for coord in vertex]
 
     def __vertex_distance(cls, a, b):
+        """Calculate the distance between two vertices
+
+        Args:
+            a (List[float]): The first vertex
+            b (List[float]): The second vertex
+
+        Returns:
+            float: The calculated distance
+        """
         return math.sqrt(sum([(c0 - c1)**2 for c0, c1 in zip(a, b)]))
 
     def find_parent_node(self, vertex):
+        """Finds the parent node for a given vertex.
+        The parent in this context is a node with a distance
+        to the vertex that is smaller than cls.__NODE_EQUALITY_EPSILON
+
+        Args:
+            vertex (List[float]): the vertex coordinates as a list
+
+        Returns:
+            tuple[int, List[int]] | tuple[None, None]: The parent node with it's index, or None if no parent exists.
+        """
         for index, node in enumerate(self.__nodes):
             dist = self.__vertex_distance(node, vertex)
             if dist < self.__NODE_EQUALITY_EPSILON:
@@ -139,6 +179,13 @@ class NodeBuffer():
         return (found, self.__nodes[found])
 
     def add_vertex(self, vertex):
+        """Adds the given vertex to the buffer.
+        This will automatically add another node, too
+        if no suitable parent node for the vertex is found.
+
+        Args:
+            vertex (List[int]): The vertex to add.
+        """
 
         # Add vertex to inner vertex buffer
         self.__vertices.append(vertex)
