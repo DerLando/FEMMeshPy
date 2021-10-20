@@ -16,8 +16,8 @@ Keeping track of what is already implemented, and what is still left do be desir
 
  - [x] `OneToManyConnectionTable` -> Convenience one-to-many mapping
  - [ ] `NodeBuffer` -> Collection of nodes in space
-  - [x] `self.add_vertex()`
-  - [ ] `self.remove_vertex()`
-  - [ ] `self.remove_node()`
+   - [x] `self.add_vertex()`
+   - [ ] `self.remove_vertex()`
+   - [ ] `self.remove_node()`
  - [ ] `FaceBuffer` -> Collection of faces
  - [ ] `EdgeBuffer` -> might not be needed
