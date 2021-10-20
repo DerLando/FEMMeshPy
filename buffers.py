@@ -112,7 +112,15 @@ class NodeBuffer():
         return [round(coord, cls.__NODE_ROUND_DIGITS) for coord in vertex]
 
     def __vertex_distance(cls, a, b):
-        return math.sqrt(sum([v0**2 + v1**2 for v0, v1 in zip(a, b)]))
+        return math.sqrt(sum([(c0 - c1)**2 for c0, c1 in zip(a, b)]))
+
+    def find_parent_node(self, vertex):
+        for index, node in enumerate(self.__nodes):
+            dist = self.__vertex_distance(node, vertex)
+            if dist < self.__NODE_EQUALITY_EPSILON:
+                return (index, node)
+
+        return (None, None)
 
     def find_closest_node(self, vertex):
         dist = float("inf")
@@ -142,9 +150,9 @@ class NodeBuffer():
         if node_index is None: # There is no readily defined vertex -> node connection
 
             # Try to find a node that is close to our given vertex
-            node_index, closest = self.find_closest_node(vertex)
+            node_index, parent = self.find_parent_node(vertex)
 
-            if not closest: # we could not find an existing node close enough
+            if not parent: # we could not find an existing node close enough
 
                 # append a copy of the vertex as a new node to the node buffer
                 self.__nodes.append(vertex[::])
@@ -169,3 +177,15 @@ class NodeBuffer():
         # establish one-to-one connection from vertex to node index
         self.__vertex_node_dict[tuple(vertex)] = node_index
 
+
+class FaceBuffer():
+
+    def __init__(self):
+        self.__face_vertex_table = OneToManyConnectionTable()
+
+    @property
+    def face_count(self):
+        return self.__face_vertex_table.count
+
+    def add_new_face(self, vertices):
+        raise NotImplementedError

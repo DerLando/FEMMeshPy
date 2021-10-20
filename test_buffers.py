@@ -44,7 +44,6 @@ class TestNodeBuffer(unittest.TestCase):
         for i in range(4):
             buffer.add_vertex([1, 2, 3.0 + i / 1000])
 
-        print(buffer.nodes())
         self.assertEqual(6, buffer.vertex_count, "Should be 6!")
         self.assertEqual(2, buffer.node_count, "Should be 2!")
 
