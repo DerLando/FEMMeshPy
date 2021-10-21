@@ -73,6 +73,9 @@ class OneToManyConnectionTable():
         """
         return len(self.__connections)
 
+    def values(self):
+        return self.__connections.values()
+
 class NodeBuffer():
     """
     A buffer of nodes and vertices. 
@@ -224,15 +227,10 @@ class NodeBuffer():
         # establish one-to-one connection from vertex to node index
         self.__vertex_node_dict[tuple(vertex)] = node_index
 
+        return vertex_index
 
-class FaceBuffer():
+    def get_vertex(self, index):
+        return self.__vertices[index]
 
-    def __init__(self):
-        self.__face_vertex_table = OneToManyConnectionTable()
-
-    @property
-    def face_count(self):
-        return self.__face_vertex_table.count
-
-    def add_new_face(self, vertices):
-        raise NotImplementedError
+    def get_parent_node(self, vertex_index):
+        return self.__vertex_node_dict[self.__vertices[vertex_index]]

@@ -14,10 +14,18 @@ Keeping track of what is already implemented, and what is still left do be desir
 
 ### Buffers
 
+Buffers are collections of mesh elements that need to be kept in sync.
+
  - [x] `OneToManyConnectionTable` -> Convenience one-to-many mapping
  - [ ] `NodeBuffer` -> Collection of nodes in space
    - [x] `self.add_vertex()`
    - [ ] `self.remove_vertex()`
    - [ ] `self.remove_node()`
- - [ ] `FaceBuffer` -> Collection of faces
- - [ ] `EdgeBuffer` -> might not be needed
+
+### Kernel
+
+The `Kernel` stores all buffers and allows for operations that have to touch multiple buffers, like adding a new face from it's vertices.
+
+### Mesh
+
+The `Mesh` wraps the `Kernel` producing a safe interface to it, so no topology can be broken.
