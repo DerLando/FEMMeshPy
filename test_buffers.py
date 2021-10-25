@@ -47,5 +47,23 @@ class TestNodeBuffer(unittest.TestCase):
         self.assertEqual(6, buffer.vertex_count, "Should be 6!")
         self.assertEqual(2, buffer.node_count, "Should be 2!")
 
+    def test_remove_vertex(self):
+
+        buffer = NodeBuffer()
+        index = buffer.add_vertex([0, 0, 0])
+        self.assertTrue(buffer.remove_vertex(index))
+
+        self.assertEqual(0, buffer.vertex_count)
+        self.assertEqual(0, buffer.node_count)
+
+        indices = [buffer.add_vertex([1, 2, 3.0 + i / 1000]) for i in range(4)]
+
+        for index in indices:
+            self.assertEqual(1, buffer.node_count)
+            buffer.remove_vertex(index)
+
+        self.assertEqual(0, buffer.vertex_count)
+        self.assertEqual(0, buffer.node_count)
+
 if __name__ == "__main__":
     unittest.main()

@@ -94,7 +94,7 @@ class NodeBuffer():
         self.__vertices = []
         # Internal table matching one node_index to many vertex_indices
         self.__node_vertex_table = OneToManyConnectionTable()
-        # Internal dict matching one vertex position to one node_index
+        # Internal dict matching one vertex index to one node_index
         self.__vertex_node_dict = {}
 
         # TODO: Indexing by vertex position is dangerous, as we might have multiple vertices at the same position
@@ -116,7 +116,7 @@ class NodeBuffer():
             int: The number of vertices.
         """
 
-        return len(self.__vertices)
+        return len(self.vertices())
 
     def vertices(self):
         # Copy the backing buffer, without the None entries
@@ -166,27 +166,28 @@ class NodeBuffer():
             tuple[int, List[int]] | tuple[None, None]: The parent node with it's index, or None if no parent exists.
         """
         for index, node in enumerate(self.__nodes):
+            if node is None: continue
             dist = self.__vertex_distance(node, vertex)
             if dist < self.__NODE_EQUALITY_EPSILON:
                 return (index, node)
 
         return (None, None)
 
-    def find_closest_node(self, vertex):
-        dist = float("inf")
-        found = -1
-        for index, node in enumerate(self.__nodes):
-            cur_dist = self.__vertex_distance(node, vertex)
-            if cur_dist < self.__NODE_EQUALITY_EPSILON:
-                return (index, node)
-            if cur_dist < dist:
-                dist = cur_dist
-                found = index
+    # def find_closest_node(self, vertex):
+    #     dist = float("inf")
+    #     found = -1
+    #     for index, node in enumerate(self.nodes()):
+    #         cur_dist = self.__vertex_distance(node, vertex)
+    #         if cur_dist < self.__NODE_EQUALITY_EPSILON:
+    #             return (index, node)
+    #         if cur_dist < dist:
+    #             dist = cur_dist
+    #             found = index
 
-        if found == -1:
-            return (None, None)
+    #     if found == -1:
+    #         return (None, None)
 
-        return (found, self.__nodes[found])
+    #     return (found, self.__nodes[found])
 
     def add_vertex(self, vertex):
         """Adds the given vertex to the buffer.
@@ -198,11 +199,24 @@ class NodeBuffer():
         """
 
         # Add vertex to inner vertex buffer
-        vertex_index = self.vertex_count
+        vertex_index = len(self.__vertices)
         self.__vertices.append(vertex)
 
+        # In the rare case that no nodes are defined at all, the next step is quite trivial
+        if self.node_count == 0:
+            # Append a copy of the vertex as a new node
+            node_index = len(self.__nodes)
+            self.__nodes.append(vertex.copy())
+
+            # Link tables together
+            self.__vertex_node_dict[vertex_index] = node_index
+            self.__node_vertex_table.create_connection(node_index)
+            self.__node_vertex_table.update_connection(node_index, vertex_index)
+
+            return vertex_index
+
         # Check if we already have a node for the vertex
-        node_index = self.__vertex_node_dict.get(tuple(vertex))
+        node_index = self.__vertex_node_dict.get(vertex_index)
 
         if node_index is None: # There is no readily defined vertex -> node connection
 
@@ -212,8 +226,8 @@ class NodeBuffer():
             if not parent: # we could not find an existing node close enough
 
                 # append a copy of the vertex as a new node to the node buffer
+                node_index = self.node_count
                 self.__nodes.append(vertex[::])
-                node_index = self.node_count - 1
 
                 # update connection from node to vertex index
                 self.__node_vertex_table.create_connection(node_index)
@@ -232,7 +246,7 @@ class NodeBuffer():
 
 
         # establish one-to-one connection from vertex to node index
-        self.__vertex_node_dict[tuple(vertex)] = node_index
+        self.__vertex_node_dict[vertex_index] = node_index
 
         return vertex_index
 
@@ -240,7 +254,7 @@ class NodeBuffer():
         return self.__vertices[index]
 
     def get_parent_node(self, vertex_index):
-        return self.__vertex_node_dict[tuple(self.__vertices[vertex_index])]
+        return self.__vertex_node_dict[vertex_index]
 
     def get_node_children(self, node_index):
         return self.__node_vertex_table.read_connection(node_index)
@@ -262,6 +276,11 @@ class NodeBuffer():
         return True
 
     def remove_vertex(self, index):
+        # check for index out of range
+        if index >= len(self.__vertices): return False
+
+        # check if vertex is already removed
+        if self.get_vertex(index) is None: return False
 
         # Get the parent for the vertex
         node = self.get_parent_node(index)
@@ -274,6 +293,9 @@ class NodeBuffer():
 
         # Set vertex to null in backing buffer
         self.__vertices[index] = None
+
+        # Try to also remove parent node, if it is now empty
+        self.remove_node(node)
 
         return True
 
