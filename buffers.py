@@ -97,6 +97,8 @@ class NodeBuffer():
         # Internal dict matching one vertex position to one node_index
         self.__vertex_node_dict = {}
 
+        # TODO: Indexing by vertex position is dangerous, as we might have multiple vertices at the same position
+
     @property
     def node_count(self):
         """Calculates the number of unique nodes stored in the buffer.
@@ -104,7 +106,7 @@ class NodeBuffer():
         Returns:
             int: The number of nodes.
         """
-        return len(self.__nodes)
+        return len(self.nodes())
 
     @property
     def vertex_count(self):
@@ -116,13 +118,18 @@ class NodeBuffer():
 
         return len(self.__vertices)
 
+    def vertices(self):
+        # Copy the backing buffer, without the None entries
+        return [vertex for vertex in self.__vertices.copy() if vertex]
+
     def nodes(self):
         """Gives access to a copy of all unique nodes in the buffer.
 
         Returns:
             List[List[float]]: The nodes as lists of coordinates
         """
-        return self.__nodes.copy()
+        # Copy the backing buffer, without the None entries
+        return [node for node in self.__nodes.copy() if node]
 
     def __round_vertex(cls, vertex):
         """Rounds the coordinates of a given vertex to the inner equality precision
@@ -191,8 +198,8 @@ class NodeBuffer():
         """
 
         # Add vertex to inner vertex buffer
-        self.__vertices.append(vertex)
         vertex_index = self.vertex_count
+        self.__vertices.append(vertex)
 
         # Check if we already have a node for the vertex
         node_index = self.__vertex_node_dict.get(tuple(vertex))
@@ -233,4 +240,42 @@ class NodeBuffer():
         return self.__vertices[index]
 
     def get_parent_node(self, vertex_index):
-        return self.__vertex_node_dict[self.__vertices[vertex_index]]
+        return self.__vertex_node_dict[tuple(self.__vertices[vertex_index])]
+
+    def get_node_children(self, node_index):
+        return self.__node_vertex_table.read_connection(node_index)
+
+    def remove_node(self, index):
+        # Read out node
+        node = self.__nodes[index]
+
+        if node is None: return False
+
+        # Check if node is empty
+        children = self.get_node_children(index)
+        if len(children) != 0: return False
+
+        # If the node is empty, it is safe to remove it
+        self.__node_vertex_table.delete_connection(index)
+        self.__nodes[index] = None
+
+        return True
+
+    def remove_vertex(self, index):
+
+        # Get the parent for the vertex
+        node = self.get_parent_node(index)
+
+        # Remove vertex from node connection
+        self.__node_vertex_table.delete_connection(node, index)
+
+        # Remove vertex from vertex table
+        del self.__vertex_node_dict[index]
+
+        # Set vertex to null in backing buffer
+        self.__vertices[index] = None
+
+        return True
+
+
+
