@@ -17,11 +17,11 @@ Keeping track of what is already implemented, and what is still left do be desir
 Buffers are collections of mesh elements that need to be kept in sync.
 
  - [x] `OneToManyConnectionTable` -> Convenience one-to-many mapping
- - [ ] `NodeBuffer` -> Collection of nodes in space
+ - [x] `NodeBuffer` -> Collection of nodes in space
    - [x] `self.add_vertex()`
-   - [ ] `self.remove_vertex()`
-   - [ ] `self.remove_node()`
-   - [ ] re-write vertex->node dict, to use indices as keys, so we don't have key overlap.
+   - [x] `self.remove_vertex()`
+   - [x] `self.remove_node()`
+   - [x] re-write vertex->node dict, to use indices as keys, so we don't have key overlap.
 
 ### Kernel
 
