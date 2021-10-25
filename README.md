@@ -21,10 +21,18 @@ Buffers are collections of mesh elements that need to be kept in sync.
    - [x] `self.add_vertex()`
    - [ ] `self.remove_vertex()`
    - [ ] `self.remove_node()`
+   - [ ] re-write vertex->node dict, to use indices as keys, so we don't have key overlap.
 
 ### Kernel
 
 The `Kernel` stores all buffers and allows for operations that have to touch multiple buffers, like adding a new face from it's vertices.
+
+The methods we need to implement on `Kernel` are as follows:
+
+ - [x] `self.add_new_face()` -> Add a new face from it's corner vertices
+ - [ ] `self.remove_face()` -> Remove a given face
+ - [x] `self.face_center()` -> Calculates the center for a given face
+ - [ ] `self.subdivide_face_constant_quads()` -> A subdivision strategy that recursively subdivides a face into quads, by splitting it's edges
 
 ### Mesh
 
