@@ -1,15 +1,22 @@
 import unittest
 from buffers import OneToManyConnectionTable, NodeBuffer
+import logging
 
 class TestConnectionTable(unittest.TestCase):
 
     def test_create(self):
+
+        logging.info("test_create")
+
         table = OneToManyConnectionTable()
         table.create_connection(1)
         table.update_connection(1, 12, 13, "Hi")
         self.assertEqual([12, 13, "Hi"], table.read_connection(1), "SHould be a list of things.")
 
     def test_delete(self):
+
+        logging.info("test_delete")
+
         table = OneToManyConnectionTable()
         table.create_connection(1)
         table.delete_connection(1)
@@ -32,6 +39,8 @@ class TestNodeBuffer(unittest.TestCase):
 
     def test_add_vertex(self):
 
+        logging.info("test_add_vertex")
+
         buffer = NodeBuffer()
         buffer.add_vertex([0, 0, 0])
         self.assertEqual(1, buffer.vertex_count, "Should be 1!")
@@ -48,6 +57,8 @@ class TestNodeBuffer(unittest.TestCase):
         self.assertEqual(2, buffer.node_count, "Should be 2!")
 
     def test_remove_vertex(self):
+        
+        logging.info("test_remove_vertex")
 
         buffer = NodeBuffer()
         index = buffer.add_vertex([0, 0, 0])
@@ -66,4 +77,5 @@ class TestNodeBuffer(unittest.TestCase):
         self.assertEqual(0, buffer.node_count)
 
 if __name__ == "__main__":
+    logging.basicConfig(filename='test_buffers.log', filemode='w', level=logging.INFO)
     unittest.main()

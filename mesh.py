@@ -18,9 +18,20 @@ class Kernel():
     def face_count(self):
         return self.__face_buffer.count
 
+    def __get_next_free_face_index(self):
+        index = 0
+        while True:
+            if self.__face_buffer.read_connection(index) is None:
+                return index
+            else:
+                index += 1
+
+
     def add_new_face(self, vertices):
+        # TODO: It's dangerous to give out old indices here I think. 
+        # TODO: Maybe it's actually fine and we just have to be careful to not re-use outdated indices
         indices = [self.__node_buffer.add_vertex(vertex) for vertex in vertices]
-        face_index = self.__face_buffer.count
+        face_index = self.__get_next_free_face_index()
         self.__face_buffer.create_connection(face_index)
         self.__face_buffer.update_connection(face_index, *indices)
 
@@ -34,7 +45,9 @@ class Kernel():
         if indices is None:
             return False
 
-        # remove face entry from face buffer
+        # TODO: This is NOT a clean solution, we have no good way to ask the buffer how many valid faces there are.
+        # set face entry to None
+        # self.__face_buffer.update_connection(face_index, None)
         self.__face_buffer.delete_connection(face_index)
 
         # remove vertices from nodebuffer
@@ -75,26 +88,62 @@ class Kernel():
 
         return [coord / len(verts) for coord in zero]
 
-    def subdivde_face_center_quad_fan(self, face_index):
+    def __subdivide_face_constant_quads_odd(self, face_index, recursion_depth):
+
+        # empty index buffer to be filled with result of subdivision
+        index_buffer = []
+
+        # get vertices defined in face
+        # TODO: How can we have a None face_index here?
         verts = self.face_vertices(face_index)
         vertex_count = len(verts)
+
+        # calculate the face center
         center = self.face_center(face_index)
+
+        # calculate mid points for all edges defined on the face
         edge_mid_points = [self.__point_on_face_edge(face_index, e, 0.5) for e in range(vertex_count)]
 
-        new_face_indices = []
+        # remove the initial, now subidivided face
+        self.remove_face(face_index)
+
+        # iterate over face vertices
         for i in range(vertex_count):
+
+            # store current vert
             cur_vert = verts[i]
+
+            # get outgoing and incoming edge mid points
             outgoing_edge_mid = edge_mid_points[i]
             incoming_edge_mid = edge_mid_points[i - 1]
 
-            new_face_indices.append(self.add_new_face([cur_vert, outgoing_edge_mid, center, incoming_edge_mid]))
+            # add new quad and append it's index to the index buffer
+            index_buffer.append(self.add_new_face([cur_vert, outgoing_edge_mid, center, incoming_edge_mid]))
 
-        self.remove_face(face_index)
+        # if we have reached the end of recursion, return the whole index buffer
+        if recursion_depth <= 0: return index_buffer
 
-        return new_face_indices
+        # iterate over index_buffer
+        recursive_buffer = []
+        for index in index_buffer:
+            # recursively subdivide all faces referenced in index_buffer, moving up the recursion chain
+            buffer = self.__subdivide_face_constant_quads_odd(index, recursion_depth - 1)
+            recursive_buffer.extend(buffer)
+
+        return recursive_buffer
+
+    def __subdivide_face_constant_quads_even(self, face_index, even_div, odd_div):
+        raise NotImplementedError
+
+    def subdivde_face_constant_quads(self, face_index, even_div, odd_div):
+        if len(self.face_vertices(face_index)) % 2 == 1:
+            return self.__subdivide_face_constant_quads_odd(face_index, even_div)
+        else:
+            return self.__subdivide_face_constant_quads_even(face_index, even_div, odd_div)
 
 
 class Mesh():
 
     def __init__(self):
         self.__kernel = Kernel()
+        
