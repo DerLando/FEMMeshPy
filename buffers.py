@@ -86,12 +86,21 @@ class OneToManyConnectionTable():
         return len(self.__connections)
 
     def values(self):
+        """
+        All Values defined in the inner dict
+        """
         return self.__connections.values()
 
     def items(self):
+        """
+        All items defined in the inner dict
+        """
         return self.__connections.items()
 
     def keys(self):
+        """
+        All keys defined in the inner dict
+        """
         return self.__connections.keys()
 
 class NodeBuffer():
@@ -106,6 +115,10 @@ class NodeBuffer():
     __NODE_ROUND_DIGITS = len(str(__NODE_EQUALITY_EPSILON)) - 1
 
     def __init__(self):
+        """
+        Initializes a new empty NodeBuffer
+        """
+
         # Internal backing store of all nodes, nodes are a list of coordinates
         self.__nodes = []
         # Internal backing store of all vertices, vertices are a list of coordinates
@@ -137,6 +150,12 @@ class NodeBuffer():
         return len(self.vertices())
 
     def vertices(self):
+        """
+        Get all vertices in the buffer
+
+        Returns:
+            list[list[float]]: The vertices
+        """
         # Copy the backing buffer, without the None entries
         return [vertex for vertex in self.__vertices.copy() if vertex]
 
@@ -219,7 +238,10 @@ class NodeBuffer():
         if no suitable parent node for the vertex is found.
 
         Args:
-            vertex (List[int]): The vertex to add.
+            vertex (List[float]): The vertex to add.
+
+        Returns:
+            int: The index of the added vertex.
         """
 
         # Add vertex to inner vertex buffer
@@ -294,15 +316,56 @@ class NodeBuffer():
         return vertex_index
 
     def get_vertex(self, index):
+        """
+        Gets the vertex for the given vertex index
+
+        Args:
+            index (int): The index of the vertex
+
+        Returns:
+            list[float]: The coordinates of the vertex
+        """
+
         return self.__vertices[index]
 
     def get_parent_node(self, vertex_index):
+        """
+        Gets the parent node of the given vertex
+
+        Args:
+            vertex_index (int): The index of the vertex to get the parent of.
+
+        Returns:
+            int: The index of the parent node.
+        """
+
         return self.__vertex_node_dict[vertex_index]
 
     def get_node_children(self, node_index):
+        """
+        Gets all the children vertex of the given node
+
+        Args:
+            node_index (int): The index of the node to find the children of
+
+        Returns:
+            list[int] | None: The indices of the vertices, or None on failure
+        """
+
         return self.__node_vertex_table.read_connection(node_index)
 
     def remove_node(self, index):
+        """
+        Removes the given node from the buffer.
+        Nodes can only be removed if all their children have been removed first.
+
+        Args:
+            index (int): The index of the node to remove
+            
+        Returns:
+            bool: True if the node was removed, False if it was not.
+        """
+
         # Read out node
         node = self.__nodes[index]
 
@@ -321,6 +384,16 @@ class NodeBuffer():
         return True
 
     def remove_vertex(self, index):
+        """
+        Removes the given vertex from the buffer.
+
+        Args:
+            index (int): The index of the vertex to remove.
+
+        Returns:
+            bool: True if the vertex was removed, False if it was not.
+        """
+
         # check for index out of range
         if index >= len(self.__vertices): return False
 
@@ -349,12 +422,34 @@ class NodeBuffer():
         return True
 
     def vertex_indices(self):
+        """
+        A list of all the vertex indices in the buffer
+
+        Returns:
+            list[int]: The indices of the verts
+        """
         return [i for i in range(len(self.__vertices)) if self.__vertices[i] is not None]
 
     def node_indices(self):
+        """
+        A list of all the node indices in the buffer
+
+        Returns:
+            list[int]: The indices of the nodes
+        """
+
         return [i for i in range(len(self.__nodes)) if self.__nodes[i] is not None]
 
     def is_topology_valid(self):
+        """
+        Test of the NodeBuffer has valid topology.
+        The topology is considered valid if no nodes are without children
+        and no vertices are without parents.
+        Also the children of a node must all link back to it.
+
+        Returns:
+            bool: True if the topology is valid, False if it is not.
+        """
         has_errors = False
 
         # Test all vertices are linked up to a parent node
