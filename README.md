@@ -25,7 +25,7 @@ Buffers are collections of mesh elements that need to be kept in sync.
 
 ### Kernel
 
-The `Kernel` stores all buffers and allows for operations that have to touch multiple buffers, like adding a new face from it's vertices.
+The `Kernel` stores all buffers and allows for operations that have to touch multiple buffers, like adding a new face from it's vertices. It can also link *vertices* to *faces* as a *One-to-One* relationship, and *nodes* to *faces* as a *One-To-Many* relationship, although I'm not sure if this is actually needed.
 
 The methods we need to implement on `Kernel` are as follows:
 

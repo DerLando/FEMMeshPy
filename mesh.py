@@ -2,24 +2,56 @@ import logging
 from buffers import OneToManyConnectionTable, NodeBuffer
 
 class Kernel():
+    """
+    A Kernel to be used in meshes. It stores vertex, node and face buffers
+    and keeps links between them.
+    """
 
     def __init__(self):
+        """
+        Initialize a new empty Kernel
+        """
+
         self.__node_buffer = NodeBuffer()
         self.__face_buffer = OneToManyConnectionTable()
 
     @property
     def vertex_count(self):
+        """
+        The numver of vertices of the kernel
+
+        Returns:
+            int: The number of verts
+        """
         return self.__node_buffer.vertex_count
 
     @property
     def node_count(self):
+        """
+        The number of unique nodes of the kernel
+
+        Returns:
+            int: The number of nodes
+        """
         return self.__node_buffer.node_count
 
     @property
     def face_count(self):
+        """
+        The number of faces of the kernel
+
+        Returns:
+            int: The number of faces
+        """
         return self.__face_buffer.count
     
     def vertices(self):
+        """
+        A list of all the vertices of the kernel
+
+        Returns:
+            list[vertex]: The vertices
+        """
         return self.__node_buffer.vertices()
 
     def __get_next_free_face_index(self):
@@ -32,18 +64,46 @@ class Kernel():
 
 
     def add_new_face(self, vertices):
+        """
+        Adds a new face to the kernel, from the vertices given
+
+        Args:
+            vertices (list[vertices]): The vertices of the face
+
+        Returns:
+            int: The index of the added face
+        """
+
+        # add all vertices to the kernel, and store their indices
         indices = [self.__node_buffer.add_vertex(vertex) for vertex in vertices]
+
+        # obtain the next free face index as a key
         face_index = self.__get_next_free_face_index()
+
+        # link the face index to the added vertices
         self.__face_buffer.create_connection(face_index)
         self.__face_buffer.update_connection(face_index, *indices)
 
         return face_index
 
     def remove_face(self, face_index):
+        """
+        Removes the given face from the mesh.
+        This will remove the face, it's vertices
+        and all parent nodes of the vertices, if they are empty
+        after this removal.
+
+        Args:
+            face_index (int): The index of the face to remove
+
+        Returns:
+            bool: True if they face was removed, False if something went wrong.
+        """
 
         # read out face vertices
         indices = self.__face_buffer.read_connection(face_index)
 
+        # if we don't find vertices, the face probably isn't defined for that index
         if indices is None:
             return False
 
@@ -53,21 +113,52 @@ class Kernel():
         return all([self.__node_buffer.remove_vertex(index) for index in indices])
 
     def faces(self):
+        """
+        A list of all the faces in the kernel
+        """
         return self.__face_buffer.values()
 
     def face_indices(self):
+        """
+        A list of the indices of all faces of the mesh
+
+        Returns:
+            list[int]: The face indices 
+        """
         return list(self.__face_buffer.keys())
 
     def face_vertices(self, face_index):
+        """
+        A list of all the vertices, stored in the given face
+
+        Args:
+            face_index (int): The index of the face, to find the vertices of
+
+        Returns:
+            list[vertex]: The vertices of the face
+        """
+
         indices = self.__face_buffer.read_connection(face_index)
         if indices is None: return None
 
         return [self.__node_buffer.get_vertex(index) for index in indices]
 
     def face_nodes(self, face_index):
+        """
+        A list of all the parent nodes, for all vertices in the given face
+
+        Args:
+            face_index (int): The index of the face to find the nodes of.
+
+        Returns:
+            list[int]: The indices of the nodes of the face
+        """
+
+        # get the indices of all vertices stored in the face
         indices = self.__face_buffer.read_connection(face_index)
         if indices is None: return None
 
+        # return a collection of parent nodes for all vertices
         return [self.__node_buffer.get_parent_node(index) for index in indices]
 
     def __face_edge(self, face_index, edge_index):
@@ -99,12 +190,30 @@ class Kernel():
         return self.__points_between_points(a, b, count)
 
     def face_center(self, face_index):
+        """
+        Calculates the center of the given face
+
+        Args:
+            face_index (int): The index of the face to calculate the center of
+
+        Returns:
+            list[float]: The coordinates of the center as a list
+        """
+        
+        # get the face vertices
         verts = self.face_vertices(face_index)
+
+        # initialize a helper vert at the origin
         zero = [0, 0, 0]
+
+        # iterate over vertices in face
         for vert in verts:
+
+            # add coordinates of vertices together
             for i in range(3):
                 zero[i] += vert[i]
 
+        # return averaged vertices
         return [coord / len(verts) for coord in zero]
 
     def subdivide_face_constant_quads(self, face_index, recursion_depth):
@@ -200,11 +309,6 @@ class Kernel():
         return face_indices
 
 
-
-
-
-
-
 class FEMMesh():
     """
     A index-based Mesh class, that exposes convenience methods
@@ -212,34 +316,94 @@ class FEMMesh():
     """
 
     def __init__(self):
+        """
+        Initializes a new, empty instance of the FEMMesh class
+        """
         self.__kernel = Kernel()
         
     @property
     def vertex_count(self):
+        """
+        The total number of vertices stored in the mesh
+
+        Returns:
+            int: The number of vertices
+        """
+
         return self.__kernel.vertex_count
 
     @property
     def vertices(self):
+        """
+        A list of all the vertices stored in the mesh
+
+        Returns:
+            list[list[float]]: The coordinates of the vertices
+        """
+
         return self.__kernel.vertices()
 
     @property
     def node_count(self):
+        """
+        The total number of unique position nodes in the mesh.
+        One node can be the parent of multiple vertices stored at that position.
+
+        Returns:
+            int: The number of unique nodes
+        """
+
         return self.__kernel.node_count
 
     @property
     def face_count(self):
+        """
+        The total number of faces stored in the mesh.
+
+        Returns:
+            int: The number of faces
+        """
+
         return self.__kernel.face_count
 
     @property
     def faces(self):
+        """
+        A list of all faces stored in the mesh.
+
+        Returns:
+            list[list[int]]: Tha faces as collections of vertex indices
+        """
+
         return self.__kernel.faces
 
     def add_face(self, vertices):
+        """
+        Adds a new face to the mesh
+
+        Args:
+            vertices (list[list[float]]): The vertices of the face to add
+
+        Returns:
+            int: The index of the added face
+        """
+
         return self.__kernel.add_new_face(vertices)
 
     def subdivide_faces(self, n):
+        """
+        Recursively subdivides all faces in the mesh, n times.
+
+        Args:
+            n (int): The number of times to subdivide            
+        """
+
         for index in self.__kernel.face_indices():
             self.__kernel.subdivide_face_constant_quads(index, n)
 
     def clear(self):
+        """
+        Clear the mesh off all vertices, nodes and faces.
+        """
+
         self.__kernel = Kernel()
