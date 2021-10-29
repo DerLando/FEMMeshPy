@@ -31,9 +31,19 @@ class TestFaceTopology(unittest.TestCase):
         kernel = Kernel()
         index = kernel.add_new_face([[0, 0, 0], [1, 0, 0], [0.5, 1, 0]])
 
-        indices = kernel.subdivde_face_constant_quads(index, 2, 0)
+        indices = kernel.subdivide_face_constant_quads(index, 2)
 
-        self.assertEqual(48, kernel.face_count)
+        self.assertEqual(12, kernel.face_count) # 3 * 4
+
+    def test_quad_grid_subd(self):
+        logging.info("test_quad_grid_subd")
+
+        kernel = Kernel()
+        index = kernel.add_new_face([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]])
+
+        kernel.subdivide_face_quad_grid(index, 2, 3)
+
+        self.assertEqual(6, kernel.face_count)
 
 if __name__ == "__main__":
     logging.basicConfig(filename='test_kernel.log', filemode='w', level=logging.INFO)
