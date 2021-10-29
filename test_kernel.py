@@ -62,5 +62,5 @@ class TestFaceTopology(unittest.TestCase):
         self.assertEqual(32, mesh.face_count)
 
 if __name__ == "__main__":
-    logging.basicConfig(filename='test_kernel.log', filemode='w', level=logging.INFO)
+    logging.basicConfig(filename='test_output/test_kernel.log', filemode='w', level=logging.INFO)
     unittest.main()

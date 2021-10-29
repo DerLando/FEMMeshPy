@@ -44,6 +44,9 @@ class Kernel():
             int: The number of faces
         """
         return self.__face_buffer.count
+
+    def get_vertex(self, vertex_index):
+        return self.__node_buffer.get_vertex(vertex_index)
     
     def vertices(self):
         """
@@ -407,3 +410,12 @@ class FEMMesh():
         """
 
         self.__kernel = Kernel()
+
+    def get_vertex(self, vertex_index):
+        """
+        Gets the vertex for the given index
+
+        Args:
+            index (int): The index of the vertex to get
+        """
+        return self.__kernel.get_vertex(vertex_index)

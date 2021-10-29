@@ -77,5 +77,5 @@ class TestNodeBuffer(unittest.TestCase):
         self.assertEqual(0, buffer.node_count)
 
 if __name__ == "__main__":
-    logging.basicConfig(filename='test_buffers.log', filemode='w', level=logging.INFO)
+    logging.basicConfig(filename='test_output/test_buffers.log', filemode='w', level=logging.INFO)
     unittest.main()

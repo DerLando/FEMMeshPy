@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Rhino files
+*.3dm
+
+# Tets output
+test_output/
