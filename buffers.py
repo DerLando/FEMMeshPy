@@ -91,6 +91,9 @@ class OneToManyConnectionTable():
     def items(self):
         return self.__connections.items()
 
+    def keys(self):
+        return self.__connections.keys()
+
 class NodeBuffer():
     """
     A buffer of nodes and vertices. 

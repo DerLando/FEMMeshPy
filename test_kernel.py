@@ -1,5 +1,6 @@
+from math import log
 import unittest
-from mesh import Kernel
+from mesh import Kernel, FEMMesh
 import logging
 
 class TestFaceTopology(unittest.TestCase):
@@ -44,6 +45,21 @@ class TestFaceTopology(unittest.TestCase):
         kernel.subdivide_face_quad_grid(index, 2, 3)
 
         self.assertEqual(6, kernel.face_count)
+
+    def test_mesh_subd_all(self):
+        logging.info("test_mesh_subd_all")
+
+        mesh = FEMMesh()
+        mesh.add_face([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]])
+        mesh.add_face([[1, 0, 0], [2, 0, 0], [2, 1, 0], [1, 1, 0]])
+
+        self.assertEqual(8, mesh.vertex_count)
+        self.assertEqual(6, mesh.node_count)
+        self.assertEqual(2, mesh.face_count)
+
+        mesh.subdivide_faces(2)
+
+        self.assertEqual(32, mesh.face_count)
 
 if __name__ == "__main__":
     logging.basicConfig(filename='test_kernel.log', filemode='w', level=logging.INFO)

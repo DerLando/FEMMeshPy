@@ -18,6 +18,9 @@ class Kernel():
     @property
     def face_count(self):
         return self.__face_buffer.count
+    
+    def vertices(self):
+        return self.__node_buffer.vertices()
 
     def __get_next_free_face_index(self):
         index = 0
@@ -53,7 +56,7 @@ class Kernel():
         return self.__face_buffer.values()
 
     def face_indices(self):
-        return self.__face_buffer.keys()
+        return list(self.__face_buffer.keys())
 
     def face_vertices(self, face_index):
         indices = self.__face_buffer.read_connection(face_index)
@@ -203,6 +206,10 @@ class Kernel():
 
 
 class FEMMesh():
+    """
+    A index-based Mesh class, that exposes convenience methods
+    to subdivide it's faces and run FEM simulations.
+    """
 
     def __init__(self):
         self.__kernel = Kernel()
@@ -212,12 +219,20 @@ class FEMMesh():
         return self.__kernel.vertex_count
 
     @property
+    def vertices(self):
+        return self.__kernel.vertices()
+
+    @property
     def node_count(self):
         return self.__kernel.node_count
 
     @property
     def face_count(self):
         return self.__kernel.face_count
+
+    @property
+    def faces(self):
+        return self.__kernel.faces
 
     def add_face(self, vertices):
         return self.__kernel.add_new_face(vertices)
