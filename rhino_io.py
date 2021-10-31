@@ -16,6 +16,7 @@ class RhinoIO():
         and do a fan-triangulation if the face is a ngon.
 
         Args:
+            mesh (Rhino.Geometry.Mesh): The rhino mesh to append a new face to
             vertices (List[List[float]]): a list of vertices
         """
 
@@ -41,11 +42,15 @@ class RhinoIO():
 
         else: # Some ngon
 
-            # create a helper polyline to calculate centroid of vertices
-            centroid = rhino3dm.Polyline(vertices).CenterPoint()
+            # calculate average point of vertices
+            average = [0, 0, 0]
+            for vert in vertices:
+                for i in range(3):
+                    average[i] += vert[i]
+            average = [coord / length for coord in average]
 
             # add centroid to mesh
-            centroid_index = mesh.Vertices.Add(centroid)
+            centroid_index = mesh.Vertices.Add(average[0], average[1], average[2])
 
             # empty lists to store ngon verts and faces
             ngon_vertex_indices = [vertex_count + i for i in range(length)]
@@ -57,11 +62,13 @@ class RhinoIO():
                 next = (index + 1) % length + vertex_count
 
                 face_index = mesh.Faces.AddFace(cur, next, centroid_index)
-                ngon_face_indices.append(face_index)
 
-            # combine the added triangle fan to a ngon
-            ngon = rhino3dm.MeshNgon.Create(ngon_vertex_indices, ngon_face_indices)
-            mesh.Ngons.AddNgon(ngon)
+            # TODO: Sadly Rhino3dm does not support ngons yet :(, in Rhinocommon this would work
+            #     ngon_face_indices.append(face_index)
+
+            # # combine the added triangle fan to a ngon
+            # ngon = rhino3dm.MeshNgon.Create(ngon_vertex_indices, ngon_face_indices)
+            # mesh.Ngons.AddNgon(ngon)
 
 
     @staticmethod
@@ -77,8 +84,6 @@ class RhinoIO():
             verts = [fem_mesh.get_vertex(index) for index in face]
 
             RhinoIO.__add_new_mesh_face(mesh, verts)
-
-            print(dir(rhino3dm.File3dm))
 
         return mesh
 

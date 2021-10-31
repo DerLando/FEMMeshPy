@@ -1,4 +1,5 @@
 import logging
+import math
 from buffers import OneToManyConnectionTable, NodeBuffer
 
 class Kernel():
@@ -323,6 +324,34 @@ class FEMMesh():
         Initializes a new, empty instance of the FEMMesh class
         """
         self.__kernel = Kernel()
+
+    @staticmethod
+    def polygon(radius, n_sides):
+        """
+        Creates a n-gon mesh in the shape of a regular Polygon
+
+        Args:
+            radius (float): The radius of the polygon
+            n_sides(int): The number of sides of the polygon
+
+        Returns:
+            FEMMesh: A mesh with a single face, or None in invalid input.
+        """
+
+        if n_sides <= 2: return None
+
+        angle_step = 2 * math.pi / n_sides
+
+        verts = []
+
+        for i in range(n_sides):
+            vert = [radius * math.cos(i * angle_step), radius * math.sin(i * angle_step), 0.0]
+            verts.append(vert)
+
+        mesh = FEMMesh()
+        mesh.add_face(verts)
+
+        return mesh
         
     @property
     def vertex_count(self):
