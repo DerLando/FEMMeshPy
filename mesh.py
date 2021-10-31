@@ -1,5 +1,6 @@
 import logging
 import math
+import numpy
 from buffers import OneToManyConnectionTable, NodeBuffer
 
 class Kernel():

@@ -2,13 +2,14 @@ from math import log
 import unittest
 from mesh import Kernel, FEMMesh
 import logging
+import numpy as np
 
 class TestFaceTopology(unittest.TestCase):
     
     def test_add_face(self):
         logging.info("test_add_face")
         kernel = Kernel()
-        index = kernel.add_new_face([[0, 0, 0], [1, 0, 0], [0.5, 1, 0]])
+        index = kernel.add_new_face([np.array([0, 0, 0]), np.array([1, 0, 0]), np.array([0.5, 1, 0])])
         self.assertEqual(0, index, "Should be 0")
         self.assertEqual(3, kernel.vertex_count)
         self.assertEqual(3, kernel.node_count)
@@ -18,7 +19,7 @@ class TestFaceTopology(unittest.TestCase):
         logging.info("test_remove_face")
         kernel = Kernel()
 
-        index = kernel.add_new_face([[0, 0, 0], [1, 0, 0], [0.5, 1, 0]])
+        index = kernel.add_new_face([np.array([0, 0, 0]), np.array([1, 0, 0]), np.array([0.5, 1, 0])])
         self.assertEqual(0, index, "Should be 0")
 
         self.assertTrue(kernel.remove_face(index))
@@ -30,7 +31,7 @@ class TestFaceTopology(unittest.TestCase):
     def test_constant_quad_subd_triangle(self):
         logging.info("test_constant_quad_subd_triangle")
         kernel = Kernel()
-        index = kernel.add_new_face([[0, 0, 0], [1, 0, 0], [0.5, 1, 0]])
+        index = kernel.add_new_face([np.array([0, 0, 0]), np.array([1, 0, 0]), np.array([0.5, 1, 0])])
 
         indices = kernel.subdivide_face_constant_quads(index, 2)
 
@@ -40,7 +41,7 @@ class TestFaceTopology(unittest.TestCase):
         logging.info("test_quad_grid_subd")
 
         kernel = Kernel()
-        index = kernel.add_new_face([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]])
+        index = kernel.add_new_face([np.array([0, 0, 0]), np.array([1, 0, 0]), np.array([1, 1, 0]), np.array([0, 1, 0])])
 
         kernel.subdivide_face_quad_grid(index, 2, 3)
 
