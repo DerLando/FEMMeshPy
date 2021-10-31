@@ -8,6 +8,11 @@ A mesh face should be subdividable, with custom *-maybe multiple different-* sub
 For *FEM*, we need to be able to efficiently query node-edge-face connections and also find neighbours for all nodes / edges / faces.
 The mesh should support *CRUD* operations on Nodes, Edges and Faces
 
+## Prerequisites
+
+This library uses [rhino3m](https://pypi.org/project/rhino3dm/) for it's *IO* to *Rhinoceros3d*. If you want to use with a custom *IO*, this package is not needed.
+Internally, the vertices are stored as *numpy* vectors.
+
 ## Implemented
 
 Keeping track of what is already implemented, and what is still left do be desired

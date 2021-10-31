@@ -47,6 +47,12 @@ class Kernel():
         return self.__face_buffer.count
 
     def get_vertex(self, vertex_index):
+        """
+        Gets the vertex position for the given index
+
+        Args:
+            vertex_index (int): The index of the vertex
+        """
         return self.__node_buffer.get_vertex(vertex_index)
     
     def vertices(self):
@@ -65,7 +71,6 @@ class Kernel():
                 return index
             else:
                 index += 1
-
 
     def add_new_face(self, vertices):
         """
