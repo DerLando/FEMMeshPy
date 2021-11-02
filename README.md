@@ -13,6 +13,8 @@ The mesh should support *CRUD* operations on Nodes, Edges and Faces
 This library uses [rhino3m](https://pypi.org/project/rhino3dm/) for it's *IO* to *Rhinoceros3d*. If you want to use with a custom *IO*, this package is not needed.
 Internally, the vertices are stored as *numpy* vectors, so you need to install *numpy*, too.
 
+Notably, this library **does not** rely on [Rhinocommon](https://developer.rhino3d.com/guides/rhinocommon/what-is-rhinocommon/), so it can be run as a **standalone** application, with only *open-source* and *free* libraries as dependencies.
+
 ## How to use
 
 For now there are 2 main python scripts to execute:
@@ -60,7 +62,7 @@ The methods we need to implement on `Kernel` are as follows:
  - [x] `self.add_new_face()` -> Add a new face from it's corner vertices
  - [x] `self.remove_face()` -> Remove a given face
  - [x] `self.face_center()` -> Calculates the center for a given face
- - [ ] `self.face_plane()` -> Calculate the plane for a given face. For this we also need a plane repr.
+ - [x] `self.face_plane()` -> Calculate the plane for a given face. For this we also need a plane repr.
 
 ### Subdivision
 
@@ -82,3 +84,7 @@ The `IO` Module implements conversions from `FEMMeshPy` to a `Rhino.Geometry.Mes
 
 Already had a lot of fun debugging some wierd quircks surrounding index-based mapping of 3 collections.
 Should definitely research and implement *logging* in python, to help ease the pain.
+
+### FEM
+
+Still a bit of a black-box to me. As I understood, I need to be able to transform from *face-space* to *global-space* and back, and also be able to transform vertices with a 7x7 Rotation Matrix representing the *6 degrees of freedom*. I need to do some research on this...
