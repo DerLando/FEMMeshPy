@@ -3,8 +3,8 @@ import logging
 from rhino_io import RhinoIO
 from mesh import FEMMesh
 
-class TestConnectionTable(unittest.TestCase):
 
+class TestConnectionTable(unittest.TestCase):
     def test_fem_to_rhino(self):
 
         logging.info("test_fem_to_rhino")
@@ -23,6 +23,9 @@ class TestConnectionTable(unittest.TestCase):
 
         # RhinoIO.write_to_file(rhino_mesh, filename="test_output/fem_to_rhino.3dm")
 
+
 if __name__ == "__main__":
-    logging.basicConfig(filename='test_output/test_io.log', filemode='w', level=logging.INFO)
+    logging.basicConfig(
+        filename="test_output/test_io.log", filemode="w", level=logging.INFO
+    )
     unittest.main()

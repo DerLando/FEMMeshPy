@@ -1,9 +1,9 @@
 import logging
 import math
-import numpy
 from buffers import OneToManyConnectionTable, NodeBuffer
 
-class Kernel():
+
+class Kernel:
     """
     A Kernel to be used in meshes. It stores vertex, node and face buffers
     and keeps links between them.
@@ -55,7 +55,7 @@ class Kernel():
             vertex_index (int): The index of the vertex
         """
         return self.__node_buffer.get_vertex(vertex_index)
-    
+
     def vertices(self):
         """
         A list of all the vertices of the kernel
@@ -133,7 +133,7 @@ class Kernel():
         A list of the indices of all faces of the mesh
 
         Returns:
-            list[int]: The face indices 
+            list[int]: The face indices
         """
         return list(self.__face_buffer.keys())
 
@@ -149,7 +149,8 @@ class Kernel():
         """
 
         indices = self.__face_buffer.read_connection(face_index)
-        if indices is None: return None
+        if indices is None:
+            return None
 
         return [self.__node_buffer.get_vertex(index) for index in indices]
 
@@ -166,14 +167,20 @@ class Kernel():
 
         # get the indices of all vertices stored in the face
         indices = self.__face_buffer.read_connection(face_index)
-        if indices is None: return None
+        if indices is None:
+            return None
 
         # return a collection of parent nodes for all vertices
         return [self.__node_buffer.get_parent_node(index) for index in indices]
 
     def __face_edge(self, face_index, edge_index):
         verts = self.face_vertices(face_index)
-        return (verts[edge_index], verts[(edge_index + 1) % len(self.__face_buffer.read_connection(face_index))])
+        return (
+            verts[edge_index],
+            verts[
+                (edge_index + 1) % len(self.__face_buffer.read_connection(face_index))
+            ],
+        )
 
     def __point_between_points(cls, a, b, t):
         return [v0 + t * (v1 - v0) for v0, v1 in zip(a, b)]
@@ -209,7 +216,7 @@ class Kernel():
         Returns:
             list[float]: The coordinates of the center as a list
         """
-        
+
         # get the face vertices
         verts = self.face_vertices(face_index)
 
@@ -239,7 +246,9 @@ class Kernel():
         center = self.face_center(face_index)
 
         # calculate mid points for all edges defined on the face
-        edge_mid_points = [self.__point_on_face_edge(face_index, e, 0.5) for e in range(vertex_count)]
+        edge_mid_points = [
+            self.__point_on_face_edge(face_index, e, 0.5) for e in range(vertex_count)
+        ]
 
         # remove the initial, now subidivided face
         self.remove_face(face_index)
@@ -255,10 +264,15 @@ class Kernel():
             incoming_edge_mid = edge_mid_points[i - 1]
 
             # add new quad and append it's index to the index buffer
-            index_buffer.append(self.add_new_face([cur_vert, outgoing_edge_mid, center, incoming_edge_mid]))
+            index_buffer.append(
+                self.add_new_face(
+                    [cur_vert, outgoing_edge_mid, center, incoming_edge_mid]
+                )
+            )
 
         # if we have reached the end of recursion, return the whole index buffer
-        if recursion_depth <= 1: return index_buffer
+        if recursion_depth <= 1:
+            return index_buffer
 
         # iterate over index_buffer
         recursive_buffer = []
@@ -277,7 +291,11 @@ class Kernel():
 
         # check if the face is a quad
         if vertex_count != 4:
-            logging.debug("Tried to grid-subdivide face at index {}, which is not a quad".format(face_index))
+            logging.debug(
+                "Tried to grid-subdivide face at index {}, which is not a quad".format(
+                    face_index
+                )
+            )
             return None
 
         # calculate point division of edges in face x direction
@@ -319,7 +337,7 @@ class Kernel():
         return face_indices
 
 
-class FEMMesh():
+class FEMMesh:
     """
     A index-based Mesh class, that exposes convenience methods
     to subdivide it's faces and run FEM simulations.
@@ -344,21 +362,26 @@ class FEMMesh():
             FEMMesh: A mesh with a single face, or None in invalid input.
         """
 
-        if n_sides <= 2: return None
+        if n_sides <= 2:
+            return None
 
         angle_step = 2 * math.pi / n_sides
 
         verts = []
 
         for i in range(n_sides):
-            vert = [radius * math.cos(i * angle_step), radius * math.sin(i * angle_step), 0.0]
+            vert = [
+                radius * math.cos(i * angle_step),
+                radius * math.sin(i * angle_step),
+                0.0,
+            ]
             verts.append(vert)
 
         mesh = FEMMesh()
         mesh.add_face(verts)
 
         return mesh
-        
+
     @property
     def vertex_count(self):
         """
@@ -433,7 +456,7 @@ class FEMMesh():
         Recursively subdivides all faces in the mesh, n times.
 
         Args:
-            n (int): The number of times to subdivide            
+            n (int): The number of times to subdivide
         """
 
         for index in self.__kernel.face_indices():

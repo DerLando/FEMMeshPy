@@ -11,7 +11,31 @@ The mesh should support *CRUD* operations on Nodes, Edges and Faces
 ## Prerequisites
 
 This library uses [rhino3m](https://pypi.org/project/rhino3dm/) for it's *IO* to *Rhinoceros3d*. If you want to use with a custom *IO*, this package is not needed.
-Internally, the vertices are stored as *numpy* vectors.
+Internally, the vertices are stored as *numpy* vectors, so you need to install *numpy*, too.
+
+## How to use
+
+For now there are 2 main python scripts to execute:
+
+ 1. `run_task.py`, which runs the current implementation of the task details
+ 2. `run_tests.py` which runs all tests defined in the project
+
+```shell
+# inside of project_dir
+python run_task.py
+python run_tests.py
+```
+
+## Structure
+
+The project is divided in `src`, for all the module logic and `tests` for all the tests.
+
+src
+ ┣ `buffers.py`
+ ┣ `geometry.py`
+ ┣ `mesh.py`
+ ┣ `rhino_io.py`
+ ┗ `task.py`
 
 ## Implemented
 
@@ -26,7 +50,6 @@ Buffers are collections of mesh elements that need to be kept in sync.
    - [x] `self.add_vertex()`
    - [x] `self.remove_vertex()`
    - [x] `self.remove_node()`
-   - [x] re-write vertex->node dict, to use indices as keys, so we don't have key overlap.
 
 ### Kernel
 

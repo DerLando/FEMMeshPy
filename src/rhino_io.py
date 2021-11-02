@@ -1,7 +1,8 @@
 from mesh import FEMMesh
 import rhino3dm
 
-class RhinoIO():
+
+class RhinoIO:
 
     """
     Static class to convert from FEMMeshPy to a Rhino.Geometry.Mesh and back.
@@ -34,13 +35,15 @@ class RhinoIO():
             mesh.Vertices.Add(vert[0], vert[1], vert[2])
 
         # match the face vertex count and add faces accordingly
-        if length == 3: # Simple triangle
+        if length == 3:  # Simple triangle
             mesh.Faces.AddFace(vertex_count, vertex_count + 1, vertex_count + 2)
 
-        elif length == 4: # Simple quad
-            mesh.Faces.AddFace(vertex_count, vertex_count + 1, vertex_count + 2, vertex_count + 3)
+        elif length == 4:  # Simple quad
+            mesh.Faces.AddFace(
+                vertex_count, vertex_count + 1, vertex_count + 2, vertex_count + 3
+            )
 
-        else: # Some ngon
+        else:  # Some ngon
 
             # calculate average point of vertices
             average = [0, 0, 0]
@@ -70,7 +73,6 @@ class RhinoIO():
             # ngon = rhino3dm.MeshNgon.Create(ngon_vertex_indices, ngon_face_indices)
             # mesh.Ngons.AddNgon(ngon)
 
-
     @staticmethod
     def convert_to_rhino(fem_mesh):
 
@@ -99,4 +101,3 @@ class RhinoIO():
             file = rhino3dm.File3dm()
             file.Objects.Add(mesh)
             file.Write(filename, version)
-        

@@ -2,20 +2,17 @@ import math
 import logging
 import numpy as np
 
-class OneToManyConnectionTable():
+
+class OneToManyConnectionTable:
     """
     Convenience mapper Class to generate OneToMany Bindings.
-    The class is backed by a dictionary and exposes a CRUD API for safe operations on it.
+    The class is backed by a dictionary and exposes a CRUD API
+    for safe operations on it.
     """
 
     def __init__(self):
         # initialize empty backing dictionary
         self.__connections = {}
-
-        # # TODO: We could generalize a backing keystore if we only ever allow ints as keys
-        # # TODO: The collection can then only hand out valid indices
-        # # initialize empty backing keystore <-?????
-        # self.__keys = []
 
     def create_connection(self, key):
         """Create a new, empty connection
@@ -35,7 +32,8 @@ class OneToManyConnectionTable():
             key (Any): The key for the connection
 
         Returns:
-            List[Any]: A list of connected values, or None if the key is not found.
+            List[Any]: A list of connected values,
+            or None if the key is not found.
         """
         logging.debug("Read connection with key: {}".format(key))
 
@@ -50,7 +48,8 @@ class OneToManyConnectionTable():
             key (Any): The key for the connection
         """
         # Test if valid key and exit early if not
-        if not key in self.__connections: return
+        if key not in self.__connections:
+            return
 
         # Overwrite data stored at key with args
         self.__connections[key] = list(args)
@@ -60,15 +59,17 @@ class OneToManyConnectionTable():
 
         Args:
             key (Any): The key for the connection
-            value (Any, optional): The value to delete from the connection. Defaults to None.
+            value (Any, optional): The value to delete from the connection.
+            Defaults to None.
         """
         logging.debug("Delete connection for key {} and value {}".format(key, value))
 
         # Check if key exists, and return early if not
-        if not key in self.__connections: return
+        if key not in self.__connections:
+            return
 
         # Branch depending on the optional value argument
-        if value is None: # if we don't have a value, delete all data stored at the key
+        if value is None:  # if we don't have a value, delete all data for key
             del self.__connections[key]
         else:
             # read out the data stored at the key
@@ -104,11 +105,13 @@ class OneToManyConnectionTable():
         """
         return self.__connections.keys()
 
-class NodeBuffer():
+
+class NodeBuffer:
     """
-    A buffer of nodes and vertices. 
+    A buffer of nodes and vertices.
     One node can contain multiple vertices.
-    This class exposes convenience function to map between nodes and vertices contained within.
+    This class exposes convenience function to map between nodes
+    and vertices contained within.
     """
 
     # The equality constant used to determine if two vertices are in the same node.
@@ -185,7 +188,7 @@ class NodeBuffer():
         Returns:
             float: The calculated distance
         """
-        return math.sqrt(sum([(c0 - c1)**2 for c0, c1 in zip(a, b)]))
+        return math.sqrt(sum([(c0 - c1) ** 2 for c0, c1 in zip(a, b)]))
 
     def find_parent_node(self, vertex):
         """Finds the parent node for a given vertex.
@@ -205,22 +208,6 @@ class NodeBuffer():
                 return (index, node)
 
         return (None, None)
-
-    # def find_closest_node(self, vertex):
-    #     dist = float("inf")
-    #     found = -1
-    #     for index, node in enumerate(self.nodes()):
-    #         cur_dist = self.__vertex_distance(node, vertex)
-    #         if cur_dist < self.__NODE_EQUALITY_EPSILON:
-    #             return (index, node)
-    #         if cur_dist < dist:
-    #             dist = cur_dist
-    #             found = index
-
-    #     if found == -1:
-    #         return (None, None)
-
-    #     return (found, self.__nodes[found])
 
     def add_vertex(self, vertex):
         """Adds the given vertex to the buffer.
@@ -249,7 +236,11 @@ class NodeBuffer():
             self.__node_vertex_table.create_connection(node_index)
             self.__node_vertex_table.update_connection(node_index, vertex_index)
 
-            logging.info("Added new vertex {} with index {} as it's own parent into empty node buffer at index {}".format(vertex, vertex_index, node_index))
+            logging.info(
+                "Added new vertex {} with index {} as it's own parent into empty node buffer at index {}".format(
+                    vertex, vertex_index, node_index
+                )
+            )
 
             return vertex_index
 
@@ -257,12 +248,12 @@ class NodeBuffer():
         # TODO: This seems like a relic from when we used vertex coords to find node parents.
         node_index = self.__vertex_node_dict.get(vertex_index)
 
-        if node_index is None: # There is no readily defined vertex -> node connection
+        if node_index is None:  # There is no readily defined vertex -> node connection
 
             # Try to find a node that is close to our given vertex
             node_index, parent = self.find_parent_node(vertex)
 
-            if parent is None: # we could not find an existing node close enough
+            if parent is None:  # we could not find an existing node close enough
 
                 # append a copy of the vertex as a new node to the node buffer
                 node_index = self.__next_available_node_index()
@@ -272,33 +263,55 @@ class NodeBuffer():
                 self.__node_vertex_table.create_connection(node_index)
                 self.__node_vertex_table.update_connection(node_index, vertex_index)
 
-                logging.info("Added new vertex {} with index {} as it's own parent into node buffer at index {}".format(vertex, vertex_index, node_index))
+                logging.info(
+                    "Added new vertex {} with index {} as it's own parent into node buffer at index {}".format(
+                        vertex, vertex_index, node_index
+                    )
+                )
 
-            else: # we do have a valid node close enough
-                
+            else:  # we do have a valid node close enough
+
                 # DEBUG
                 connection = self.__node_vertex_table.read_connection(node_index)
                 if connection is None:
-                    logging.warn("Could not read vertex connection for node_index {}, although the index was obtained from self.find_parent_node({})".format(node_index, vertex))
+                    logging.warn(
+                        "Could not read vertex connection for node_index {}, although the index was obtained from self.find_parent_node({})".format(
+                            node_index, vertex
+                        )
+                    )
 
                     # self.__node_vertex_table.create_connection(node_index)
 
                 # add vertex connection to node table
-                self.__node_vertex_table.read_connection(node_index).append(vertex_index)
-            
-                logging.info("Added new vertex {} with index {} with parent node at index {}".format(vertex, vertex_index, node_index))
+                self.__node_vertex_table.read_connection(node_index).append(
+                    vertex_index
+                )
 
-        else: # we already have some node data defined for that vertex position
+                logging.info(
+                    "Added new vertex {} with index {} with parent node at index {}".format(
+                        vertex, vertex_index, node_index
+                    )
+                )
+
+        else:  # we already have some node data defined for that vertex position
 
             # DEBUG
             connection = self.__node_vertex_table.read_connection(node_index)
             if connection is None:
-                logging.warn("Could not read vertex connection for node_index {}, although the index was obtained from self.__vertex_node_dict[{}]".format(node_index, vertex_index))
+                logging.warn(
+                    "Could not read vertex connection for node_index {}, although the index was obtained from self.__vertex_node_dict[{}]".format(
+                        node_index, vertex_index
+                    )
+                )
 
             # add vertex connection to node table
             self.__node_vertex_table.read_connection(node_index).append(vertex_index)
 
-            logging.info("Added new vertex {} with index {} with parent node at index {}".format(vertex, vertex_index, node_index))
+            logging.info(
+                "Added new vertex {} with index {} with parent node at index {}".format(
+                    vertex, vertex_index, node_index
+                )
+            )
 
         # establish one-to-one connection from vertex to node index
         self.__vertex_node_dict[vertex_index] = node_index
@@ -351,7 +364,7 @@ class NodeBuffer():
 
         Args:
             index (int): The index of the node to remove
-            
+
         Returns:
             bool: True if the node was removed, False if it was not.
         """
@@ -359,11 +372,13 @@ class NodeBuffer():
         # Read out node
         node = self.__nodes[index]
 
-        if node is None: return False
+        if node is None:
+            return False
 
         # Check if node is empty
         children = self.get_node_children(index)
-        if len(children) != 0: return False
+        if len(children) != 0:
+            return False
 
         # If the node is empty, it is safe to remove it
         self.__node_vertex_table.delete_connection(index)
@@ -385,11 +400,13 @@ class NodeBuffer():
         """
 
         # check for index out of range
-        if index >= len(self.__vertices): return False
+        if index >= len(self.__vertices):
+            return False
 
         # check if vertex is already removed
         vertex = self.get_vertex(index)
-        if vertex is None: return False
+        if vertex is None:
+            return False
 
         # Get the parent for the vertex
         node = self.get_parent_node(index)
@@ -408,7 +425,6 @@ class NodeBuffer():
         # Try to also remove parent node, if it is now empty
         self.remove_node(node)
 
-
         return True
 
     def vertex_indices(self):
@@ -418,7 +434,9 @@ class NodeBuffer():
         Returns:
             list[int]: The indices of the verts
         """
-        return [i for i in range(len(self.__vertices)) if self.__vertices[i] is not None]
+        return [
+            i for i in range(len(self.__vertices)) if self.__vertices[i] is not None
+        ]
 
     def node_indices(self):
         """
@@ -444,7 +462,7 @@ class NodeBuffer():
 
         # Test all vertices are linked up to a parent node
         for index in self.vertex_indices():
-            self.get_parent_node(index) # this will throw if no parent is linked
+            self.get_parent_node(index)  # this will throw if no parent is linked
 
         # Test all nodes to have children
         for index in self.node_indices():
@@ -455,7 +473,12 @@ class NodeBuffer():
             for child in children:
                 parent_index = self.get_parent_node(child)
                 if parent_index != index:
-                    print("Topology ERROR: Node %i has a dangling reference to vertex %i, which references node %i", index, child, parent_index)
+                    print(
+                        "Topology ERROR: Node %i has a dangling reference to vertex %i, which references node %i",
+                        index,
+                        child,
+                        parent_index,
+                    )
                     has_errors = True
 
         return not has_errors

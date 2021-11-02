@@ -1,8 +1,8 @@
 from mesh import FEMMesh
 from rhino_io import RhinoIO
 
-class House():
 
+class House:
     def __init__(self, front_points, depth):
         back_points = House.__calculate_house_vertices(front_points, depth)
 
@@ -24,7 +24,10 @@ class House():
         """
 
         # Calculate coordinates of back face by adding building depth to y
-        return [[coord[0], coord[1] + building_depth, coord[2]] for coord in coordinates_front_face]
+        return [
+            [coord[0], coord[1] + building_depth, coord[2]]
+            for coord in coordinates_front_face
+        ]
 
     @staticmethod
     def __build_house_wireframe(points_front_face, points_back_face):
@@ -39,7 +42,7 @@ class House():
         # Side key is made up of identifier 'side' and a number
         side_ident = "face_side"
         side_key = None
-        
+
         # Add sides of house to mesh, this is achieved by iterating
         # over front and back face vertices in groups of 4 and adding quads
         for i in range(len(points_front_face) - 1):
@@ -54,13 +57,13 @@ class House():
 
             # assign corners to list
             side_corners = [cur_front, next_front, next_back, cur_back]
-            
+
             # test if side_key needs to be updated
             update = False
-            if side_key in wireframe: # key exists, but already data there
+            if side_key in wireframe:  # key exists, but already data there
                 if len(wireframe[side_key]) > 0:
                     update = True
-            else: # key does not exist
+            else:  # key does not exist
                 update = True
 
             # update the key if needed
@@ -72,13 +75,14 @@ class House():
 
         return wireframe
 
+
 def main():
     """
     Task related implementation of Semester project
     """
 
     # Initial front face coordinates, hardcoded
-    coordinates_front_face = [[0,0,0], [0,0,3], [1.5,0,4], [3,0,3], [3,0,0]]
+    coordinates_front_face = [[0, 0, 0], [0, 0, 3], [1.5, 0, 4], [3, 0, 3], [3, 0, 0]]
 
     # The depth of the building (distance from front to back face)
     building_depth = 5.0
@@ -90,7 +94,12 @@ def main():
     house.mesh.subdivide_faces(3)
 
     # Write House mesh to rhino file
-    RhinoIO.write_to_file(house.mesh, "test_output/task_output.3dm")
+    output_path = "../tests/test_output/task_output.3dm"
+    RhinoIO.write_to_file(house.mesh, output_path)
+
+    # print some feedback
+    print("SUCCESS: Wrote task result to {}".format(output_path))
+
 
 if __name__ == "__main__":
     main()
