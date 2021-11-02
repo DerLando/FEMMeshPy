@@ -2,6 +2,7 @@ import unittest
 import logging
 import numpy as np
 from geometry import Plane
+from mesh import FEMMesh
 
 
 class TestFaceTopology(unittest.TestCase):
@@ -26,6 +27,19 @@ class TestFaceTopology(unittest.TestCase):
         np.testing.assert_array_almost_equal(
             test_pt, plane.point_at(projected[0], projected[1], projected[2])
         )
+
+    def test_face_plane(self):
+        mesh = FEMMesh()
+        mesh.add_face([np.array([0, 0, 0]), np.array([3, 0, 0]), np.array([0.5, 1, 0])])
+
+        face_plane = mesh.get_face_plane(0)
+        expected_plane = Plane(
+            np.array([0, 0, 0]), np.array([1, 0, 0]), np.array([0, 1, 0])
+        )
+
+        np.testing.assert_array_almost_equal(face_plane.x_axis, expected_plane.x_axis)
+        np.testing.assert_array_almost_equal(face_plane.y_axis, expected_plane.y_axis)
+        np.testing.assert_array_almost_equal(face_plane.z_axis, expected_plane.z_axis)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,8 @@
 import logging
 import math
 from buffers import OneToManyConnectionTable, NodeBuffer
+from geometry import Plane
+import numpy as np
 
 
 class Kernel:
@@ -232,6 +234,40 @@ class Kernel:
 
         # return averaged vertices
         return [coord / len(verts) for coord in zero]
+
+    @staticmethod
+    def __unitize_coord(coord):
+        return coord / np.linalg.norm(coord)
+
+    def face_plane(self, face_index):
+        """
+        Returns the plane of a given face
+
+        Args:
+            face_index (int): The index of the face to subdivide
+
+        Returns:
+            Plane: The plane of the face, with origin at the first face vertex
+        """
+
+        # Get vertices of face
+        verts = self.face_vertices(face_index)
+
+        # extract origin and x axis from vertices
+        origin = verts[0]
+        x_axis = verts[1] - verts[0]
+        y_axis = verts[-1] - verts[0]
+
+        # Make sure y-axis is perpendicular to z-axis by double-crossing
+        z_axis = np.cross(x_axis, y_axis)
+        y_axis = np.cross(z_axis, x_axis)
+
+        # Unitize axes
+        x_axis = self.__unitize_coord(x_axis)
+        y_axis = self.__unitize_coord(y_axis)
+
+        # Return the face plane
+        return Plane(origin, x_axis, y_axis)
 
     def subdivide_face_constant_quads(self, face_index, recursion_depth=1):
         """
@@ -501,4 +537,4 @@ class FEMMesh:
         return self.__kernel.get_vertex(vertex_index)
 
     def get_face_plane(self, face_index):
-        return self.__kernel.get_face_plane(face_index)
+        return self.__kernel.face_plane(face_index)
