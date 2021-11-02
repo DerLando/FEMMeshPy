@@ -133,3 +133,7 @@ dmypy.json
 
 # Tets output
 test_output/
+
+# vscode settings
+.vscode
+vscode/

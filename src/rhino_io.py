@@ -75,6 +75,15 @@ class RhinoIO:
 
     @staticmethod
     def convert_to_rhino(fem_mesh):
+        """
+        Converts the given FEMMesh to a rhino3dm.Mesh
+
+        Args:
+            fem_mesh (FEMMesh): The mesh to convert
+
+        Returns:
+            rhino3dm.Mesh: The converted mesh instance
+        """
 
         # create new, empty rhino mesh
         mesh = rhino3dm.Mesh()
@@ -85,6 +94,7 @@ class RhinoIO:
             # get vertices
             verts = [fem_mesh.get_vertex(index) for index in face]
 
+            # add a new mesh face from the verts
             RhinoIO.__add_new_mesh_face(mesh, verts)
 
         return mesh
@@ -95,9 +105,36 @@ class RhinoIO:
 
     @staticmethod
     def write_to_file(mesh, filename="output.3dm", version=6):
+        """
+        Write the given mesh to a rhino (.3dm) file
+
+        Args:
+            mesh (FEMMesh | rhino3dm.Mesh): The mesh to write to file
+            filename (str | Optional): The name of the file to write (Default: output.3dm)
+        """
+
+        # Test if the mesh is a FEMMesh, and convert to rhino mesh
         if isinstance(mesh, FEMMesh):
             mesh = RhinoIO.convert_to_rhino(mesh)
+
+        # Test if the mesh is a rhino mesh that we can write via rhino3dm
         if isinstance(mesh, rhino3dm.Mesh):
+
+            # create a new File3dm instance
             file = rhino3dm.File3dm()
+
+            # Add the mesh to it's object table
             file.Objects.Add(mesh)
-            file.Write(filename, version)
+
+            # Try to write the file
+            if not file.Write(filename, version):
+                print(
+                    "RhinoIO.write_to_file ERROR: Failed to write {}".format(filename)
+                )
+                return False
+
+            return True
+
+        else:
+            print("RhinoIO.write_to_file ERROR: {} is not a valid mesh".format(mesh))
+            return False

@@ -1,5 +1,6 @@
 from mesh import FEMMesh
 from rhino_io import RhinoIO
+import os
 
 
 class House:
@@ -94,11 +95,11 @@ def main():
     house.mesh.subdivide_faces(3)
 
     # Write House mesh to rhino file
-    output_path = "../tests/test_output/task_output.3dm"
-    RhinoIO.write_to_file(house.mesh, output_path)
+    output_path = os.path.realpath(".\\tests\\test_output\\task_output.3dm")
+    if RhinoIO.write_to_file(house.mesh, output_path):
 
-    # print some feedback
-    print("SUCCESS: Wrote task result to {}".format(output_path))
+        # print some feedback
+        print("SUCCESS: Wrote task result to {}".format(output_path))
 
 
 if __name__ == "__main__":

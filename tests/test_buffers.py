@@ -5,6 +5,14 @@ import numpy as np
 
 
 class TestConnectionTable(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        logging.basicConfig(
+            filename="tests/test_output/tests.log",
+            filemode="w",
+            level=logging.INFO,
+        )
+
     def test_create(self):
 
         logging.info("test_create")
@@ -83,7 +91,10 @@ class TestNodeBuffer(unittest.TestCase):
 
 
 if __name__ == "__main__":
+
     logging.basicConfig(
-        filename="test_output/test_buffers.log", filemode="w", level=logging.INFO
+        filename=".\\tests\\test_output\\test_buffers.log",
+        filemode="w",
+        level=logging.INFO,
     )
     unittest.main()
