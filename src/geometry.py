@@ -1,6 +1,7 @@
 import numpy as np
 
-class Plane():
+
+class Plane:
     """
     A Plane primitive.
     It is internally represented as a parametrical matrix: [U, V, N, Q],
@@ -107,9 +108,7 @@ class Plane():
             array-like: The evaluated point in carthesian space.
         """
 
-        return self.__matrix.dot(
-            Plane.__to_homogenous(
-                np.array([u, v, n])))
+        return self.__matrix.dot(Plane.__to_homogenous(np.array([u, v, n])))
 
     def point_at(self, u, v, n):
         """
@@ -123,7 +122,7 @@ class Plane():
         Returns:
             array-like: The evaluated point in carthesian space.
         """
-        
+
         return Plane.__to_carthesian(self.__evaluate(u, v, n))
 
     def convert_to_plane_space(self, vector):
@@ -136,8 +135,6 @@ class Plane():
         Returns:
             array-like: A point in plane coordinates
         """
-        
+
         inverse = np.linalg.inv(self.__matrix)
-        return Plane.__to_carthesian(
-            inverse.dot(
-                Plane.__to_homogenous(vector)))
+        return Plane.__to_carthesian(inverse.dot(Plane.__to_homogenous(vector)))

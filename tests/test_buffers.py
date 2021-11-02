@@ -3,8 +3,8 @@ from buffers import OneToManyConnectionTable, NodeBuffer
 import logging
 import numpy as np
 
-class TestConnectionTable(unittest.TestCase):
 
+class TestConnectionTable(unittest.TestCase):
     def test_create(self):
 
         logging.info("test_create")
@@ -12,7 +12,9 @@ class TestConnectionTable(unittest.TestCase):
         table = OneToManyConnectionTable()
         table.create_connection(1)
         table.update_connection(1, 12, 13, "Hi")
-        self.assertEqual([12, 13, "Hi"], table.read_connection(1), "SHould be a list of things.")
+        self.assertEqual(
+            [12, 13, "Hi"], table.read_connection(1), "SHould be a list of things."
+        )
 
     def test_delete(self):
 
@@ -36,8 +38,8 @@ class TestConnectionTable(unittest.TestCase):
 
         self.assertEqual(["hi", 12, 5], table.read_connection(5), "Should be [hi, 12].")
 
-class TestNodeBuffer(unittest.TestCase):
 
+class TestNodeBuffer(unittest.TestCase):
     def test_add_vertex(self):
 
         logging.info("test_add_vertex")
@@ -58,7 +60,7 @@ class TestNodeBuffer(unittest.TestCase):
         self.assertEqual(2, buffer.node_count, "Should be 2!")
 
     def test_remove_vertex(self):
-        
+
         logging.info("test_remove_vertex")
 
         buffer = NodeBuffer()
@@ -68,7 +70,9 @@ class TestNodeBuffer(unittest.TestCase):
         self.assertEqual(0, buffer.vertex_count)
         self.assertEqual(0, buffer.node_count)
 
-        indices = [buffer.add_vertex(np.array([1, 2, 3.0 + i / 1000])) for i in range(4)]
+        indices = [
+            buffer.add_vertex(np.array([1, 2, 3.0 + i / 1000])) for i in range(4)
+        ]
 
         for index in indices:
             self.assertEqual(1, buffer.node_count)
@@ -77,6 +81,9 @@ class TestNodeBuffer(unittest.TestCase):
         self.assertEqual(0, buffer.vertex_count)
         self.assertEqual(0, buffer.node_count)
 
+
 if __name__ == "__main__":
-    logging.basicConfig(filename='test_output/test_buffers.log', filemode='w', level=logging.INFO)
+    logging.basicConfig(
+        filename="test_output/test_buffers.log", filemode="w", level=logging.INFO
+    )
     unittest.main()

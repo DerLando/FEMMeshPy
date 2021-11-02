@@ -1,15 +1,16 @@
-from math import log
 import unittest
 from mesh import Kernel, FEMMesh
 import logging
 import numpy as np
 
+
 class TestFaceTopology(unittest.TestCase):
-    
     def test_add_face(self):
         logging.info("test_add_face")
         kernel = Kernel()
-        index = kernel.add_new_face([np.array([0, 0, 0]), np.array([1, 0, 0]), np.array([0.5, 1, 0])])
+        index = kernel.add_new_face(
+            [np.array([0, 0, 0]), np.array([1, 0, 0]), np.array([0.5, 1, 0])]
+        )
         self.assertEqual(0, index, "Should be 0")
         self.assertEqual(3, kernel.vertex_count)
         self.assertEqual(3, kernel.node_count)
@@ -19,7 +20,9 @@ class TestFaceTopology(unittest.TestCase):
         logging.info("test_remove_face")
         kernel = Kernel()
 
-        index = kernel.add_new_face([np.array([0, 0, 0]), np.array([1, 0, 0]), np.array([0.5, 1, 0])])
+        index = kernel.add_new_face(
+            [np.array([0, 0, 0]), np.array([1, 0, 0]), np.array([0.5, 1, 0])]
+        )
         self.assertEqual(0, index, "Should be 0")
 
         self.assertTrue(kernel.remove_face(index))
@@ -31,17 +34,26 @@ class TestFaceTopology(unittest.TestCase):
     def test_constant_quad_subd_triangle(self):
         logging.info("test_constant_quad_subd_triangle")
         kernel = Kernel()
-        index = kernel.add_new_face([np.array([0, 0, 0]), np.array([1, 0, 0]), np.array([0.5, 1, 0])])
+        index = kernel.add_new_face(
+            [np.array([0, 0, 0]), np.array([1, 0, 0]), np.array([0.5, 1, 0])]
+        )
 
-        indices = kernel.subdivide_face_constant_quads(index, 2)
+        kernel.subdivide_face_constant_quads(index, 2)
 
-        self.assertEqual(12, kernel.face_count) # 3 * 4
+        self.assertEqual(12, kernel.face_count)  # 3 * 4
 
     def test_quad_grid_subd(self):
         logging.info("test_quad_grid_subd")
 
         kernel = Kernel()
-        index = kernel.add_new_face([np.array([0, 0, 0]), np.array([1, 0, 0]), np.array([1, 1, 0]), np.array([0, 1, 0])])
+        index = kernel.add_new_face(
+            [
+                np.array([0, 0, 0]),
+                np.array([1, 0, 0]),
+                np.array([1, 1, 0]),
+                np.array([0, 1, 0]),
+            ]
+        )
 
         kernel.subdivide_face_quad_grid(index, 2, 3)
 
@@ -62,6 +74,9 @@ class TestFaceTopology(unittest.TestCase):
 
         self.assertEqual(32, mesh.face_count)
 
+
 if __name__ == "__main__":
-    logging.basicConfig(filename='test_output/test_kernel.log', filemode='w', level=logging.INFO)
+    logging.basicConfig(
+        filename="test_output/test_kernel.log", filemode="w", level=logging.INFO
+    )
     unittest.main()
