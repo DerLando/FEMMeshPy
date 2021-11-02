@@ -233,7 +233,18 @@ class Kernel:
         # return averaged vertices
         return [coord / len(verts) for coord in zero]
 
-    def subdivide_face_constant_quads(self, face_index, recursion_depth):
+    def subdivide_face_constant_quads(self, face_index, recursion_depth=1):
+        """
+        Subdivides the given face into n quads, where n is the number of vertices in the face.
+        This function can be run recursively by supplying a recursion depth >= 1.
+
+        Args:
+            face_index (int): The index of the face to subdivide
+            recursion_depth (int | Optional): The number of times the face should be subdivided.
+
+        Returns:
+            list (int): The indices of the newly generated faces
+        """
 
         # empty index buffer to be filled with result of subdivision
         index_buffer = []
@@ -284,6 +295,17 @@ class Kernel:
         return recursive_buffer
 
     def subdivide_face_quad_grid(self, face_index, x_div, y_div):
+        """
+        Subdivide the given quad with a grid of x * y cells.
+
+        Args:
+            face_index (int): The index of the face to subdivide
+            x_div (int): The number of cells in face x-direction
+            y_div (int): The number of cells in face y-direction
+
+        Returns:
+            list (int): The indices of the newly generated faces
+        """
 
         # get vertices defined in face
         verts = self.face_vertices(face_index)
@@ -477,3 +499,6 @@ class FEMMesh:
             index (int): The index of the vertex to get
         """
         return self.__kernel.get_vertex(vertex_index)
+
+    def get_face_plane(self, face_index):
+        return self.__kernel.get_face_plane(face_index)
