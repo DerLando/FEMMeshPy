@@ -1,5 +1,6 @@
 import math
 import logging
+import numpy as np
 
 class OneToManyConnectionTable():
     """
@@ -157,7 +158,7 @@ class NodeBuffer():
             list[list[float]]: The vertices
         """
         # Copy the backing buffer, without the None entries
-        return [vertex for vertex in self.__vertices.copy() if vertex]
+        return [vertex for vertex in self.__vertices.copy() if vertex is not None]
 
     def nodes(self):
         """Gives access to a copy of all unique nodes in the buffer.
@@ -166,24 +167,13 @@ class NodeBuffer():
             List[List[float]]: The nodes as lists of coordinates
         """
         # Copy the backing buffer, without the None entries
-        return [node for node in self.__nodes.copy() if node]
+        return [node for node in self.__nodes.copy() if node is not None]
 
     def __next_available_node_index(self):
         return len(self.__nodes)
 
     def __next_available_vertex_index(self):
         return len(self.__vertices)
-
-    def __round_vertex(cls, vertex):
-        """Rounds the coordinates of a given vertex to the inner equality precision
-
-        Args:
-            vertex (List[float]): the vertex coordinates as a list
-
-        Returns:
-            List[float]: the rounded coordinate values as a list
-        """
-        return [round(coord, cls.__NODE_ROUND_DIGITS) for coord in vertex]
 
     def __vertex_distance(cls, a, b):
         """Calculate the distance between two vertices
@@ -272,11 +262,11 @@ class NodeBuffer():
             # Try to find a node that is close to our given vertex
             node_index, parent = self.find_parent_node(vertex)
 
-            if not parent: # we could not find an existing node close enough
+            if parent is None: # we could not find an existing node close enough
 
                 # append a copy of the vertex as a new node to the node buffer
                 node_index = self.__next_available_node_index()
-                self.__nodes.append(vertex.copy())
+                self.__nodes.append(np.copy(vertex))
 
                 # update connection from node to vertex index
                 self.__node_vertex_table.create_connection(node_index)
