@@ -19,6 +19,9 @@ class Kernel:
         self.__node_buffer = NodeBuffer()
         self.__face_buffer = OneToManyConnectionTable()
 
+        # TODO: Implement as a dict from vertex index to face index, and keep in sync
+        self.__vertex_face_connection = {}
+
     @property
     def vertex_count(self):
         """
@@ -57,6 +60,16 @@ class Kernel:
             vertex_index (int): The index of the vertex
         """
         return self.__node_buffer.get_vertex(vertex_index)
+
+    def get_face(self, face_index):
+        """
+        Gets the face for the given index, if it exists
+
+        Args:
+            face_index (int): The index of the face
+        """
+
+        return self.__face_buffer.read_connection(face_index).keys()
 
     def vertices(self):
         """
@@ -174,6 +187,30 @@ class Kernel:
 
         # return a collection of parent nodes for all vertices
         return [self.__node_buffer.get_parent_node(index) for index in indices]
+
+    def face_neighbors(self, face_index):
+        # TODO: Suuuuuuper inefficient way of doing nn search:
+
+        face_nodes_indices = set(self.face_nodes(face_index))
+        neighbor_indices = []
+
+        # Iterate over all faces in self
+        for index in self.face_indices():
+            # Skip if we iterate the face to search neighbors for
+            if index == face_index:
+                continue
+
+            # Get all nodes for the current face
+            cur_nodes_indices = set(self.face_nodes(index))
+
+            # Check if the set intersection of the node indices produces one or more edges
+            if len(face_nodes_indices & cur_nodes_indices) < 2:
+                continue
+
+            # Append the neighbor index
+            neighbor_indices.append(index)
+
+        return neighbor_indices
 
     def __face_edge(self, face_index, edge_index):
         verts = self.face_vertices(face_index)
@@ -496,6 +533,17 @@ class FEMMesh:
 
         return self.__kernel.faces
 
+    @property
+    def face_indices(self):
+        """
+        A list of all face indices in the mesh.
+
+        Returns:
+            list[int]: The indices of the faces
+        """
+
+        return self.__kernel.face_indices()
+
     def add_face(self, vertices):
         """
         Adds a new face to the mesh
@@ -536,5 +584,28 @@ class FEMMesh:
         """
         return self.__kernel.get_vertex(vertex_index)
 
+    def get_face(self, face_index):
+        """
+        Gets the face for the given index
+
+        Args:
+            index (int): The index of the face to get
+        """
+
+        return self.__kernel.get_face(face_index)
+
     def get_face_plane(self, face_index):
         return self.__kernel.face_plane(face_index)
+
+    def get_face_neighbors(self, face_index):
+        """
+        Gets all the neighbors of the given face.
+
+        Args:
+            index (int): The index of the face to get the neighbors of
+
+        Returns:
+            list[int]: The indices of the neighboring faces
+        """
+
+        return self.__kernel.face_neighbors(face_index)

@@ -76,6 +76,27 @@ The signature takes 2 integers, one for even-edges-subd count and one for odd-ed
 
 The `Mesh` wraps the `Kernel` producing a safe interface to it, so no topology can be broken.
 
+#### Elements
+
+The elements containend in a `Mesh` are represented as simple python data-structures where possible:
+
+ - `Vertex` -> A positional mesh vertex, represented as a np.Array
+ - `Node` -> A topological defined vertex, that knows all vertices at it's posiiton, defined as a np.Array
+ - `Edge` -> An edge between two vertices, defined as a `Set` of it's vertex indices
+ - `Face` -> A collection of ordered vertices, defined as an `OrderedSet` of the vertex indices
+
+#### TODO
+
+ - [ ] Allow for more cross-element references ->
+  - [x] Vertex -> Node
+  - [ ] Edge -> Vertices
+  - [ ] Edge -> Nodes
+  - [ ] Node -> Faces
+  - [ ] Vertex -> Face
+  - [x] Face -> Nodes
+  - [x] Face -> Vertices
+  - [ ] Face -> Edges
+
 ### IO
 
 The `IO` Module implements conversions from `FEMMeshPy` to a `Rhino.Geometry.Mesh`, for displaying in *Rhino*. I'm still unsure on what would be a good structure here, maybe it would make sense to serialize the mesh to a file, and read that out via another script, so we don't have to subject ourselves to the pain of trying to get *numpy* to run inside of *IronPython 2.7*.

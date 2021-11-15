@@ -1,6 +1,7 @@
 import math
 import logging
 import numpy as np
+from collections import OrderedDict
 
 
 class OneToManyConnectionTable:
@@ -20,8 +21,8 @@ class OneToManyConnectionTable:
         Args:
             key (Any): The key for the connection
         """
-        # initialize an empty list at the given key
-        self.__connections[key] = []
+        # initialize an empty set at the given key
+        self.__connections[key] = OrderedDict()
 
         logging.debug("Created Connection for key: {}".format(key))
 
@@ -38,7 +39,11 @@ class OneToManyConnectionTable:
         logging.debug("Read connection with key: {}".format(key))
 
         # call dict.get() to return the connection data, or None
-        return self.__connections.get(key)
+        connection = self.__connections.get(key)
+        if connection is None:
+            return None
+
+        return connection.keys()
 
     def update_connection(self, key, *args):
         """Updates a connection with the given arguments.
@@ -52,7 +57,7 @@ class OneToManyConnectionTable:
             return
 
         # Overwrite data stored at key with args
-        self.__connections[key] = list(args)
+        self.__connections[key] = OrderedDict.fromkeys(args)
 
     def delete_connection(self, key, value=None):
         """Deletes all or parts of the connection data for the given key.
@@ -73,10 +78,29 @@ class OneToManyConnectionTable:
             del self.__connections[key]
         else:
             # read out the data stored at the key
-            values = self.read_connection(key)
+            values = self.__connections.get(key)
 
-            # remove the specified value from the connection, if the value is not contained, this does nothing
-            values.remove(value)
+            # remove the specified value from the connection, if the value is not contained, this will throw
+            del values[value]
+
+    def append_to_connection(self, key, value):
+        """
+        Tries to append the given value to the connection stored at key.
+
+        Args:
+            key (Any) -> The key for the connection
+            value (Any) -> The value to append to the connection
+
+        Returns:
+            bool: True if successfully appended the value, False if something went wrong
+        """
+
+        # Check if key exists, and return early if not
+        if key not in self.__connections:
+            return False
+
+        # create a new empty key
+        self.__connections[key][value] = None
 
     @property
     def count(self):
@@ -283,9 +307,7 @@ class NodeBuffer:
                     # self.__node_vertex_table.create_connection(node_index)
 
                 # add vertex connection to node table
-                self.__node_vertex_table.read_connection(node_index).append(
-                    vertex_index
-                )
+                self.__node_vertex_table.append_to_connection(node_index, vertex_index)
 
                 logging.info(
                     "Added new vertex {} with index {} with parent node at index {}".format(
@@ -305,7 +327,7 @@ class NodeBuffer:
                 )
 
             # add vertex connection to node table
-            self.__node_vertex_table.read_connection(node_index).append(vertex_index)
+            self.__node_vertex_table.append_to_connection(node_index, vertex_index)
 
             logging.info(
                 "Added new vertex {} with index {} with parent node at index {}".format(
