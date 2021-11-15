@@ -1,5 +1,7 @@
 import logging
 import math
+
+from numpy.core.numeric import indices
 from buffers import OneToManyConnectionTable, NodeBuffer
 from geometry import Plane
 import numpy as np
@@ -271,6 +273,62 @@ class Kernel:
 
         # return averaged vertices
         return [coord / len(verts) for coord in zero]
+
+    def face_edge(self, face_index, edge_index):
+        """
+        Gets the edge of the face at the given index
+
+        Args:
+            face_index (int): The index of the face to get the edge of
+            edge_index (int): The index of the edge
+
+        Returns:
+            Set[int]: A set of the two vertex indices connected by the edge
+        """
+        indices = list(self.__face_buffer.read_connection(face_index))
+        if indices is None:
+            return
+
+        return set([indices[edge_index], indices[(edge_index + 1) % len(indices)]])
+
+    def face_edges(self, face_index):
+        """
+        Gets all edges of the face at the given index
+
+        Args:
+            face_index (int): The index of the face to get the edge of
+
+        Returns:
+            List[Set[int]]: A list of sets of the two vertex indices connected by their edge
+        """
+        return [
+            self.face_edge(face_index, i)
+            for i in range(len(self.face_vertices(face_index)))
+        ]
+
+    def edge_vertices(self, edge):
+        """
+        Convenience function to return the two vertex positions of a given edge
+
+        Args:
+            edge (Set[int]): The edge to get the vertex positions of
+
+        Returns:
+            tuple(vertex, vertex): The two vertices, their order is not guaranteed.
+        """
+        raise NotImplementedError()
+
+    def edge_faces(self, edge):
+        """
+        Find the faces (or the face) that share the given edge
+
+        Args:
+            edge (Set[int]): The edge to get the faces of
+
+        Returns:
+            tuple(face): One or two faces, or None if the edge is invalid
+        """
+        raise NotImplementedError()
 
     @staticmethod
     def __unitize_coord(coord):
@@ -596,6 +654,9 @@ class FEMMesh:
 
     def get_face_plane(self, face_index):
         return self.__kernel.face_plane(face_index)
+
+    def get_face_edges(self, face_index):
+        return self.__kernel.face_edges(face_index)
 
     def get_face_neighbors(self, face_index):
         """

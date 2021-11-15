@@ -95,7 +95,7 @@ The elements containend in a `Mesh` are represented as simple python data-struct
   - [ ] Vertex -> Face
   - [x] Face -> Nodes
   - [x] Face -> Vertices
-  - [ ] Face -> Edges
+  - [x] Face -> Edges
 
 ### IO
 
