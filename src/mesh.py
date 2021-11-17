@@ -238,6 +238,43 @@ class Kernel:
 
         return neighbor_indices
 
+    def node_neighbors(self, node_index):
+        """
+        Gets all nodes connected to the given node via an edge
+
+        Args:
+            node_index (int): The index of the node
+
+        Returns:
+            Iterable[int]: The indices of the connected nodes
+        """
+
+        # empty set for neighbor indices
+        neighbor_indices = set()
+
+        # get node faces
+        faces = self.node_faces(node_index)
+
+        # iterate over node faces
+        for face_index in faces:
+
+            # iterate over face edges
+            for edge in self.face_edges(face_index):
+
+                # test if the edge is connected to our starting node
+                nodes = self.edge_nodes(edge)
+                if not node_index in nodes:
+                    continue
+
+                # add edge to neighbor_indices
+                neighbor_indices.update(nodes)
+
+        # remove node index from neighbors
+        neighbor_indices.remove(node_index)
+
+        # return neighbors
+        return neighbor_indices
+
     def parent_face_index(self, vertex_index):
         """
         Gets the parent face index of the given vertex
