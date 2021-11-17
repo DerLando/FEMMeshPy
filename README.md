@@ -87,15 +87,17 @@ The elements containend in a `Mesh` are represented as simple python data-struct
 
 #### TODO
 
- - [ ] Allow for more cross-element references ->
-  - [x] Vertex -> Node
-  - [ ] Edge -> Vertices
-  - [ ] Edge -> Nodes
-  - [ ] Node -> Faces
-  - [ ] Vertex -> Face
-  - [x] Face -> Nodes
-  - [x] Face -> Vertices
-  - [x] Face -> Edges
+ - [x] Allow for more cross-element references ->
+   - [x] Vertex -> Node
+   - [x] Edge -> Vertices
+   - [x] Edge -> Nodes
+   - [x] Vertex -> Face
+   - [x] Node -> Faces
+   - [x] Face -> Nodes
+   - [x] Face -> Vertices
+   - [x] Face -> Edges
+
+Seperate clearer the identity of `Kernel` and `Mesh`. `Kernel` should do all topology queries and operations, but work **solely** on **Handles** *(Indices)*. The `Mesh` wraps the `Kernel` and allows access to elements from handles.
 
 ### IO
 

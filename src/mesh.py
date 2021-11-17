@@ -111,6 +111,9 @@ class Kernel:
         self.__face_buffer.create_connection(face_index)
         self.__face_buffer.update_connection(face_index, *indices)
 
+        # link the added vertices to their parent face
+        self.__vertex_face_connection.update({index: face_index for index in indices})
+
         return face_index
 
     def remove_face(self, face_index):
@@ -134,7 +137,12 @@ class Kernel:
         if indices is None:
             return False
 
+        # delete face from face buffer
         self.__face_buffer.delete_connection(face_index)
+
+        # delete all vertex-links from vertex-face map
+        for index in indices:
+            del self.__vertex_face_connection[index]
 
         # remove vertices from nodebuffer
         return all([self.__node_buffer.remove_vertex(index) for index in indices])
@@ -191,6 +199,22 @@ class Kernel:
         return [self.__node_buffer.get_parent_node(index) for index in indices]
 
     def face_neighbors(self, face_index):
+        # empty index set for all face indices
+        neighbor_indices = set()
+
+        # get all face_nodes
+        nodes = self.face_nodes(face_index)
+
+        # get node faces and add to set
+        for node in nodes:
+            neighbor_indices.add(self.node_faces(node))
+
+        # remove face_index from set, as it's not technically a neighbor
+        neighbor_indices.remove(face_index)
+
+        # return neighbor_indices
+        return neighbor_indices
+
         # TODO: Suuuuuuper inefficient way of doing nn search:
 
         face_nodes_indices = set(self.face_nodes(face_index))
@@ -213,6 +237,32 @@ class Kernel:
             neighbor_indices.append(index)
 
         return neighbor_indices
+
+    def parent_face_index(self, vertex_index):
+        """
+        Gets the parent face index of the given vertex
+
+        Args:
+            vertex_index (int): The index of the vertex
+
+        Returns:
+            int: The index of the parent face, or None if no parent is definend
+        """
+
+        return self.__vertex_face_connection.get(vertex_index)
+
+    def parent_face(self, vertex_index):
+        """
+        Gets the parent face of the given vertex
+
+        Args:
+            vertex_index (int): The index of the vertex
+
+        Returns:
+            face: The parent face of the vertex
+        """
+
+        return self.__face_buffer[self.parent_face_index(vertex_index)]
 
     def __face_edge(self, face_index, edge_index):
         verts = self.face_vertices(face_index)
@@ -316,7 +366,21 @@ class Kernel:
         Returns:
             tuple(vertex, vertex): The two vertices, their order is not guaranteed.
         """
-        raise NotImplementedError()
+
+        return [self.__node_buffer.get_vertex(i) for i in edge]
+
+    def edge_nodes(self, edge):
+        """
+        Get the two nodes connected by a given edge
+
+        Args:
+            edge (Set[int]): The edge to get the nodes of
+
+        Returns:
+            tuple(int, int): The node indices at start and end of the edge
+        """
+
+        return [self.__node_buffer.get_parent_node(i) for i in edge]
 
     def edge_faces(self, edge):
         """
@@ -328,7 +392,22 @@ class Kernel:
         Returns:
             tuple(face): One or two faces, or None if the edge is invalid
         """
-        raise NotImplementedError()
+        return (self.parent_face(index) for index in edge)
+
+    def node_faces(self, node_index):
+        """
+        Find the faces that share the given node through their vertices.
+
+        Args:
+            node_index (int): The index of the node
+
+        Returns:
+            List[face]: The faces connected through the node.
+        """
+        return [
+            self.parent_face_index(index)
+            for index in self.__node_buffer.get_node_children(node_index)
+        ]
 
     @staticmethod
     def __unitize_coord(coord):
@@ -670,3 +749,18 @@ class FEMMesh:
         """
 
         return self.__kernel.face_neighbors(face_index)
+
+    def get_face_edge(self, face_index, edge_index):
+        return self.__kernel.face_edge(face_index, edge_index)
+
+    def get_edge_vertices(self, edge):
+        return self.__kernel.edge_vertices(edge)
+
+    def get_edge_nodes(self, edge):
+        return self.__kernel.edge_nodes(edge)
+
+    def get_edge_faces(self, edge):
+        return self.__kernel.edge_faces(edge)
+
+    def get_face_from_vertex(self, vertex_index):
+        return self.__kernel.parent_face(vertex_index)

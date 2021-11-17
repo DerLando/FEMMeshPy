@@ -82,6 +82,10 @@ class TestFaceTopology(unittest.TestCase):
         for index, edge in enumerate(mesh.get_face_edges(0)):
             self.assertEqual(set([index, (index + 1) % mesh.vertex_count]), edge)
 
+        edge = set((0, 1))
+        nodes = mesh.get_edge_nodes(edge)
+        print(nodes)
+
 
 if __name__ == "__main__":
     logging.basicConfig(
