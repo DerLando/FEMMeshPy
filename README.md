@@ -99,6 +99,10 @@ The elements containend in a `Mesh` are represented as simple python data-struct
 
 Seperate clearer the identity of `Kernel` and `Mesh`. `Kernel` should do all topology queries and operations, but work **solely** on **Handles** *(Indices)*. The `Mesh` wraps the `Kernel` and allows access to elements from handles.
 
+Make mesh elements and nn-queries generators, where possible.
+
+Rewrite `README` to better reflect current changes, and also examples.
+
 ### IO
 
 The `IO` Module implements conversions from `FEMMeshPy` to a `Rhino.Geometry.Mesh`, for displaying in *Rhino*. I'm still unsure on what would be a good structure here, maybe it would make sense to serialize the mesh to a file, and read that out via another script, so we don't have to subject ourselves to the pain of trying to get *numpy* to run inside of *IronPython 2.7*.
