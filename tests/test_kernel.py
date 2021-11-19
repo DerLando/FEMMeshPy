@@ -74,6 +74,18 @@ class TestFaceTopology(unittest.TestCase):
 
         self.assertEqual(32, mesh.face_count)
 
+    def test_face_edges(self):
+        logging.info("test_face_edges")
+
+        mesh = FEMMesh.polygon(1.0, 5)
+
+        for index, edge in enumerate(mesh.get_face_edges(0)):
+            self.assertEqual(set([index, (index + 1) % mesh.vertex_count]), edge)
+
+        edge = set((0, 1))
+        nodes = mesh.get_edge_nodes(edge)
+        print(nodes)
+
 
 if __name__ == "__main__":
     logging.basicConfig(

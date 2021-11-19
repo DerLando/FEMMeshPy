@@ -21,7 +21,9 @@ class TestConnectionTable(unittest.TestCase):
         table.create_connection(1)
         table.update_connection(1, 12, 13, "Hi")
         self.assertEqual(
-            [12, 13, "Hi"], table.read_connection(1), "SHould be a list of things."
+            [12, 13, "Hi"],
+            list(table.read_connection(1)),
+            "SHould be a list of things.",
         )
 
     def test_delete(self):
@@ -44,7 +46,9 @@ class TestConnectionTable(unittest.TestCase):
 
         table.delete_connection(5, 0)
 
-        self.assertEqual(["hi", 12, 5], table.read_connection(5), "Should be [hi, 12].")
+        self.assertEqual(
+            ["hi", 12, 5], list(table.read_connection(5)), "Should be [hi, 12]."
+        )
 
 
 class TestNodeBuffer(unittest.TestCase):
