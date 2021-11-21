@@ -277,7 +277,8 @@ class FEMMesh:
 
     def get_face_neighbors(self, face_index):
         """
-        Gets all the neighbors of the given face.
+        Gets all the neighbors of the given face. Neighbors are all faxwa
+        that share at least one node with the given face.
 
         Args:
             index (int): The index of the face to get the neighbors of

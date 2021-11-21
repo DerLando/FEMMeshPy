@@ -268,7 +268,7 @@ class Kernel:
 
     def face_neighbors(self, face_index):
         """
-        Find all the faces, that share an edge with the given face
+        Find all the faces, that share a node with the given face
 
         Args:
             face_index (int): The index of the face
