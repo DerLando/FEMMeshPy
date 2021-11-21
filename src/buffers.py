@@ -185,7 +185,7 @@ class NodeBuffer:
             list[list[float]]: The vertices
         """
         # Copy the backing buffer, without the None entries
-        return [vertex for vertex in self.__vertices.copy() if vertex is not None]
+        return (vertex for vertex in self.__vertices.copy() if vertex is not None)
 
     def nodes(self):
         """Gives access to a copy of all unique nodes in the buffer.
@@ -194,7 +194,7 @@ class NodeBuffer:
             List[List[float]]: The nodes as lists of coordinates
         """
         # Copy the backing buffer, without the None entries
-        return [node for node in self.__nodes.copy() if node is not None]
+        return (node for node in self.__nodes.copy() if node is not None)
 
     def __next_available_node_index(self):
         return len(self.__nodes)
@@ -456,9 +456,9 @@ class NodeBuffer:
         Returns:
             list[int]: The indices of the verts
         """
-        return [
+        return (
             i for i in range(len(self.__vertices)) if self.__vertices[i] is not None
-        ]
+        )
 
     def node_indices(self):
         """
@@ -468,7 +468,7 @@ class NodeBuffer:
             list[int]: The indices of the nodes
         """
 
-        return [i for i in range(len(self.__nodes)) if self.__nodes[i] is not None]
+        return (i for i in range(len(self.__nodes)) if self.__nodes[i] is not None)
 
     def is_topology_valid(self):
         """
