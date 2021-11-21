@@ -89,7 +89,7 @@ class RhinoIO:
         mesh = rhino3dm.Mesh()
 
         # iterate over faces in fem_mesh
-        for face in fem_mesh.faces():
+        for face in fem_mesh.faces:
 
             # get vertices
             verts = [fem_mesh.get_vertex(index) for index in face]
@@ -111,6 +111,9 @@ class RhinoIO:
         Args:
             mesh (FEMMesh | rhino3dm.Mesh): The mesh to write to file
             filename (str | Optional): The name of the file to write (Default: output.3dm)
+
+        Returns:
+            bool: True on success, False on failure
         """
 
         # Test if the mesh is a FEMMesh, and convert to rhino mesh

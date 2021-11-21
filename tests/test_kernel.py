@@ -83,7 +83,7 @@ class TestFaceTopology(unittest.TestCase):
             self.assertEqual(set([index, (index + 1) % mesh.vertex_count]), edge)
 
         edge = set((0, 1))
-        nodes = mesh.get_edge_nodes(edge)
+        nodes = mesh.get_edge_node_indices(edge)
         print(nodes)
 
 

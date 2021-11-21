@@ -67,7 +67,7 @@ class Kernel:
                 index += 1
 
     def __face_edge(self, face_index, edge_index):
-        verts = self.face_vertices(face_index)
+        verts = self.__get_face_vertices(face_index)
         return (
             verts[edge_index],
             verts[
@@ -135,7 +135,7 @@ class Kernel:
             set[int]: The vertex indices containend in the face
         """
 
-        return self.__face_buffer.read_connection(face_index).keys()
+        return self.__face_buffer.read_connection(face_index)
 
     def get_node(self, node_index):
         """
@@ -284,7 +284,7 @@ class Kernel:
 
         # get node faces and add to set
         for node in nodes:
-            neighbor_indices.add(self.node_faces(node))
+            neighbor_indices.update(set(self.node_faces(node)))
 
         # remove face_index from set, as it's not technically a neighbor
         neighbor_indices.remove(face_index)
@@ -321,7 +321,7 @@ class Kernel:
         """
         return [
             self.face_edge(face_index, i)
-            for i in range(len(self.face_vertices(face_index)))
+            for i in range(len(self.__get_face_vertices(face_index)))
         ]
 
     def face_plane(self, face_index):

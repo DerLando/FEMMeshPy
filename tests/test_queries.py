@@ -15,6 +15,8 @@ class TestFaceQueries(unittest.TestCase):
 
         for index in mesh.face_indices:
             neighbor_indices = mesh.get_face_neighbors(index)
+            print(index)
+            print(neighbor_indices)
             self.assertEqual(len(neighbor_indices), 2)
 
     # TODO: Maybe implement Node-NN and Vertex-NN ?
