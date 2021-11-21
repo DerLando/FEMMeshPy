@@ -1,7 +1,6 @@
 import logging
 import math
 
-from numpy.core.numeric import indices
 from buffers import OneToManyConnectionTable, NodeBuffer
 from geometry import Plane
 import numpy as np
@@ -178,9 +177,10 @@ class Kernel:
         A list of the indices of all faces of the mesh
 
         Returns:
-            list[int]: The face indices
+            generator[int]: The face indices
         """
-        return list(self.__face_buffer.keys())
+        # we have to list the keys here, otherwise we might mutate the dict while iterating over it
+        return (key for key in list(self.__face_buffer.keys()))
 
     # endregion
 
@@ -255,16 +255,16 @@ class Kernel:
             face_index (int): The index of the face to find the nodes of.
 
         Returns:
-            list[int]: The indices of the nodes of the face
+            generator[int]: The indices of the nodes of the face
         """
 
         # get the indices of all vertices stored in the face
-        indices = self.get_face(face_index)
-        if indices is None:
+        vertex_indices = self.get_face(face_index)
+        if vertex_indices is None:
             return None
 
         # return a collection of parent nodes for all vertices
-        return [self.parent_node(index) for index in indices]
+        return (self.parent_node(vertex_index) for vertex_index in vertex_indices)
 
     def face_neighbors(self, face_index):
         """
@@ -274,7 +274,7 @@ class Kernel:
             face_index (int): The index of the face
 
         Returns:
-            list[int]: The indices of the neighbor faces
+            set[int]: The indices of the neighbor faces
         """
         # empty index set for all face indices
         neighbor_indices = set()
@@ -317,12 +317,12 @@ class Kernel:
             face_index (int): The index of the face to get the edge of
 
         Returns:
-            List[Set[int]]: A list of sets of the two vertex indices connected by their edge
+            generator[Set[int]]: A list of sets of the two vertex indices connected by their edge
         """
-        return [
+        return (
             self.face_edge(face_index, i)
             for i in range(len(self.__get_face_vertices(face_index)))
-        ]
+        )
 
     def face_plane(self, face_index):
         """
@@ -419,7 +419,7 @@ class Kernel:
             node_index (int): The index of the node
 
         Returns:
-            Iterable[int]: The indices of the connected nodes
+            Set[int]: The indices of the connected nodes
         """
 
         # empty set for neighbor indices
@@ -456,11 +456,11 @@ class Kernel:
             node_index (int): The index of the node
 
         Returns:
-            List[int]: The faces connected through the node.
+            generator[int]: The faces connected through the node.
         """
-        return [
+        return (
             self.parent_face(vertex_index) for vertex_index in self.get_node(node_index)
-        ]
+        )
 
     # endregion
 
@@ -474,10 +474,10 @@ class Kernel:
             edge (Set[int]): The edge to get the nodes of
 
         Returns:
-            tuple(int, int): The node indices at start and end of the edge
+            generator[int]: The node indices at start and end of the edge
         """
 
-        return [self.parent_node(vertex_index) for vertex_index in edge]
+        return (self.parent_node(vertex_index) for vertex_index in edge)
 
     def edge_faces(self, edge):
         """
@@ -487,7 +487,7 @@ class Kernel:
             edge (Set[int]): The edge to get the faces of
 
         Returns:
-            tuple(int): One or two faces, or None if the edge is invalid
+            generator[int]: One or two faces, or None if the edge is invalid
         """
         return (self.parent_face(index) for index in edge)
 

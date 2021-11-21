@@ -165,36 +165,36 @@ class NodeBuffer:
         Returns:
             int: The number of nodes.
         """
-        return len(self.nodes())
+        return sum(1 for _ in self.nodes())
 
     @property
     def vertex_count(self):
-        """Calculates the number of unique vertices stored in the buffer.
+        """Calculates the number of vertices stored in the buffer.
 
         Returns:
             int: The number of vertices.
         """
 
-        return len(self.vertices())
+        return sum(1 for _ in self.vertices())
 
     def vertices(self):
         """
         Get all vertices in the buffer
 
         Returns:
-            list[list[float]]: The vertices
+            generator[np.array[float]]: The vertices
         """
         # Copy the backing buffer, without the None entries
-        return [vertex for vertex in self.__vertices.copy() if vertex is not None]
+        return (vertex for vertex in self.__vertices.copy() if vertex is not None)
 
     def nodes(self):
         """Gives access to a copy of all unique nodes in the buffer.
 
         Returns:
-            List[List[float]]: The nodes as lists of coordinates
+            generator[np.array[float]]: The nodes as lists of coordinates
         """
         # Copy the backing buffer, without the None entries
-        return [node for node in self.__nodes.copy() if node is not None]
+        return (node for node in self.__nodes.copy() if node is not None)
 
     def __next_available_node_index(self):
         return len(self.__nodes)
@@ -206,8 +206,8 @@ class NodeBuffer:
         """Calculate the distance between two vertices
 
         Args:
-            a (List[float]): The first vertex
-            b (List[float]): The second vertex
+            a (np.array[float]): The first vertex
+            b (np.array[float]): The second vertex
 
         Returns:
             float: The calculated distance
@@ -456,9 +456,9 @@ class NodeBuffer:
         Returns:
             list[int]: The indices of the verts
         """
-        return [
+        return (
             i for i in range(len(self.__vertices)) if self.__vertices[i] is not None
-        ]
+        )
 
     def node_indices(self):
         """
@@ -468,7 +468,7 @@ class NodeBuffer:
             list[int]: The indices of the nodes
         """
 
-        return [i for i in range(len(self.__nodes)) if self.__nodes[i] is not None]
+        return (i for i in range(len(self.__nodes)) if self.__nodes[i] is not None)
 
     def is_topology_valid(self):
         """
