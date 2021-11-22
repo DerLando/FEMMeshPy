@@ -196,6 +196,9 @@ class NodeBuffer:
         # Copy the backing buffer, without the None entries
         return (node for node in self.__nodes.copy() if node is not None)
 
+    def node_position(self, node_index):
+        return self.__nodes[node_index].copy()
+
     def __next_available_node_index(self):
         return len(self.__nodes)
 
@@ -377,7 +380,7 @@ class NodeBuffer:
             list[int] | None: The indices of the vertices, or None on failure
         """
 
-        return self.__node_vertex_table.read_connection(node_index)
+        return set(self.__node_vertex_table.read_connection(node_index))
 
     def remove_node(self, index):
         """
