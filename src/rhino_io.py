@@ -10,6 +10,10 @@ class RhinoIO:
     """
 
     @staticmethod
+    def __vertex_to_point3d(vertex):
+        return rhino3dm.Point3d(vertex[0], vertex[1], vertex[2])
+
+    @staticmethod
     def __add_new_mesh_face(mesh, vertices):
         """
         Adds a new mesh face to a given mesh with the given vertices.
@@ -73,6 +77,66 @@ class RhinoIO:
             # ngon = rhino3dm.MeshNgon.Create(ngon_vertex_indices, ngon_face_indices)
             # mesh.Ngons.AddNgon(ngon)
 
+    def __add_layer_to_file3dm(file3dm, name):
+        layer = rhino3dm.Layer()
+        layer.Name = name
+
+        return file3dm.Layers.Add(layer)
+
+    @staticmethod
+    def __write_debug_information(file3dm, fem_mesh):
+        """
+        Write the connectivity information of the given fem_mesh, to the rhino file.
+        Connectivity info is stored in text dots
+
+        Args:
+            file3dm (File3dm): The rhino file in memory
+            fem_mesh (FEMMesh): The mesh to write debug info for
+
+        Returns:
+            bool: True on Success, False if something went wrong
+        """
+
+        node_layer_index = RhinoIO.__add_layer_to_file3dm(file3dm, "Nodes")
+        face_layer_index = RhinoIO.__add_layer_to_file3dm(file3dm, "Faces")
+        edge_layer_index = RhinoIO.__add_layer_to_file3dm(file3dm, "Edges")
+
+        # node_color = draw.Color.FromArgb(230, 79, 225)
+        # edge_color = draw.Color.FromArgb(55, 230, 206)
+        # face_color = draw.Color.FromArgb(230, 203, 101)
+
+        node_attrs = rhino3dm.ObjectAttributes()
+        node_attrs.LayerIndex = node_layer_index
+
+        for node_index in fem_mesh.node_indices:
+            vertex_indices = fem_mesh.get_node_indices(node_index)
+            file3dm.Objects.AddTextDot(
+                str(vertex_indices),
+                RhinoIO.__vertex_to_point3d(
+                    fem_mesh.get_vertex(next(iter(vertex_indices)))
+                ),
+                node_attrs,
+            )
+
+        face_attrs = rhino3dm.ObjectAttributes()
+        face_attrs.LayerIndex = face_layer_index
+
+        for face_index in fem_mesh.face_indices:
+            vertex_indices = fem_mesh.get_face_indices(face_index)
+            center = fem_mesh.get_face_center(face_index)
+            file3dm.Objects.AddTextDot(
+                str(vertex_indices), RhinoIO.__vertex_to_point3d(center), face_attrs
+            )
+
+        edge_attrs = rhino3dm.ObjectAttributes()
+        edge_attrs.LayerIndex = edge_layer_index
+
+        for edge in fem_mesh.node_edges:
+            center = fem_mesh.get_point_on_node_edge(edge, 0.5)
+            file3dm.Objects.AddTextDot(
+                str(edge), RhinoIO.__vertex_to_point3d(center), edge_attrs
+            )
+
     @staticmethod
     def convert_to_rhino(fem_mesh):
         """
@@ -104,13 +168,14 @@ class RhinoIO:
         raise NotImplementedError()
 
     @staticmethod
-    def write_to_file(mesh, filename="output.3dm", version=6):
+    def write_to_file(mesh, filename="output.3dm", version=6, debug=False):
         """
         Write the given mesh to a rhino (.3dm) file
 
         Args:
             mesh (FEMMesh | rhino3dm.Mesh): The mesh to write to file
             filename (str | Optional): The name of the file to write (Default: output.3dm)
+            debug (bool | Optional): Also write debug information to the rhino file
 
         Returns:
             bool: True on success, False on failure
@@ -118,6 +183,8 @@ class RhinoIO:
 
         # Test if the mesh is a FEMMesh, and convert to rhino mesh
         if isinstance(mesh, FEMMesh):
+            # TODO: Make this less hacky
+            fem_mesh = mesh
             mesh = RhinoIO.convert_to_rhino(mesh)
 
         # Test if the mesh is a rhino mesh that we can write via rhino3dm
@@ -128,6 +195,10 @@ class RhinoIO:
 
             # Add the mesh to it's object table
             file.Objects.Add(mesh)
+
+            # Try to write debug information to file
+            if debug:
+                RhinoIO.__write_debug_information(file, fem_mesh)
 
             # Try to write the file
             if not file.Write(filename, version):

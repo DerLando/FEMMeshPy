@@ -75,7 +75,7 @@ class Kernel:
         )
 
     def __point_between_points(cls, a, b, t):
-        return [v0 + t * (v1 - v0) for v0, v1 in zip(a, b)]
+        return np.array([v0 + t * (v1 - v0) for v0, v1 in zip(a, b)])
 
     def __points_between_points(cls, a, b, count):
 
@@ -181,6 +181,36 @@ class Kernel:
         """
         # we have to list the keys here, otherwise we might mutate the dict while iterating over it
         return (key for key in list(self.__face_buffer.keys()))
+
+    def node_edges(self):
+        """
+        An iterator over all undirected edges of the mesh
+
+        Returns:
+            generator[set[int]]: The edges
+        """
+
+        edges = set()
+
+        for face_index in self.faces():
+            edges.update(
+                set((self.edge_nodes(edge) for edge in self.face_edges(face_index)))
+            )
+
+        return (edge for edge in edges)
+
+    def vertex_edges(self):
+        """
+        An iterator over all directed edges of the mesh
+
+        Returns:
+            generator[set[int]]: The edges
+        """
+
+        edges = set()
+
+        for face_index in self.faces():
+            edges.update(self.face_edges(face_index))
 
     # endregion
 
@@ -368,8 +398,10 @@ class Kernel:
         # get the face vertices
         verts = self.__get_face_vertices(face_index)
 
+        return np.mean(verts, axis=0)
+
         # initialize a helper vert at the origin
-        zero = [0, 0, 0]
+        zero = np.array([0, 0, 0])
 
         # iterate over vertices in face
         for vert in verts:
@@ -379,7 +411,7 @@ class Kernel:
                 zero[i] += vert[i]
 
         # return averaged vertices
-        return [coord / len(verts) for coord in zero]
+        return zero / len(verts)
 
     def parent_face(self, vertex_index):
         """
@@ -461,6 +493,9 @@ class Kernel:
         return (
             self.parent_face(vertex_index) for vertex_index in self.get_node(node_index)
         )
+
+    def node_position(self, node_index):
+        return self.__node_buffer.node_position(node_index)
 
     # endregion
 

@@ -28,13 +28,28 @@ class TestFaceTopology(unittest.TestCase):
             test_pt, plane.point_at(projected[0], projected[1], projected[2])
         )
 
+    def test_point_on_edge(self):
+        mesh = FEMMesh()
+        mesh.add_face([np.array([0, 0, 0]), np.array([1, 0, 0]), np.array([0.5, 1, 0])])
+
+        edge = (0, 1)
+        np.testing.assert_array_almost_equal(
+            np.array([0, 0, 0]), mesh.get_point_on_vertex_edge(edge, 0)
+        )
+        np.testing.assert_array_almost_equal(
+            np.array([1, 0, 0]), mesh.get_point_on_vertex_edge(edge, 1)
+        )
+        np.testing.assert_array_almost_equal(
+            np.array([0.5, 0, 0]), mesh.get_point_on_vertex_edge(edge, 0.5)
+        )
+
     def test_face_plane(self):
         mesh = FEMMesh()
-        mesh.add_face([np.array([0, 0, 0]), np.array([3, 0, 0]), np.array([0.5, 1, 0])])
+        mesh.add_face([np.array([1, 0, 0]), np.array([4, 0, 0]), np.array([1.5, 1, 0])])
 
         face_plane = mesh.get_face_plane(0)
         expected_plane = Plane(
-            np.array([0, 0, 0]), np.array([1, 0, 0]), np.array([0, 1, 0])
+            np.array([1, 0, 0]), np.array([1, 0, 0]), np.array([0, 1, 0])
         )
 
         np.testing.assert_array_almost_equal(face_plane.x_axis, expected_plane.x_axis)

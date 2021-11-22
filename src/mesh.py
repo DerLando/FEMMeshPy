@@ -1,5 +1,6 @@
 import logging
 import math
+import numpy as np
 
 from kernel import Kernel
 
@@ -42,6 +43,14 @@ class FEMMesh:
             self.__kernel.get_vertex(vertex_index)
             for vertex_index in self.__kernel.vertices()
         ]
+
+    @property
+    def vertex_indices(self):
+        return self.__kernel.vertices()
+
+    @property
+    def node_indices(self):
+        return self.__kernel.nodes()
 
     @property
     def node_count(self):
@@ -90,6 +99,10 @@ class FEMMesh:
 
         return self.__kernel.faces()
 
+    @property
+    def node_edges(self):
+        return self.__kernel.node_edges()
+
     # endregion
 
     # region public static methods
@@ -115,11 +128,13 @@ class FEMMesh:
         verts = []
 
         for i in range(n_sides):
-            vert = [
-                radius * math.cos(i * angle_step),
-                radius * math.sin(i * angle_step),
-                0.0,
-            ]
+            vert = np.array(
+                [
+                    radius * math.cos(i * angle_step),
+                    radius * math.sin(i * angle_step),
+                    0.0,
+                ]
+            )
             verts.append(vert)
 
         mesh = FEMMesh()
@@ -191,6 +206,9 @@ class FEMMesh:
             for vertex_index in self.__kernel.get_node(node_index)
         )
 
+    def get_node_indices(self, node_index):
+        return self.__kernel.get_node(node_index)
+
     def get_face(self, face_index):
         """
         Gets the face for the given index
@@ -206,6 +224,9 @@ class FEMMesh:
             self.__kernel.get_vertex(vertex_index)
             for vertex_index in self.__kernel.get_face(face_index)
         )
+
+    def get_face_indices(self, face_index):
+        return self.__kernel.get_face(face_index)
 
     # endregion
 
@@ -254,6 +275,10 @@ class FEMMesh:
 
         return self.__kernel.node_neighbors(node_index)
 
+    def get_node_position(self, node_index):
+
+        return self.__kernel.node_position(node_index)
+
     # endregion
 
     # region edge queries
@@ -266,6 +291,20 @@ class FEMMesh:
 
     def get_edge_face_indices(self, edge):
         return self.__kernel.edge_faces(edge)
+
+    def get_point_on_node_edge(self, edge, t):
+        return np.average(
+            np.array([self.get_node_position(node_index) for node_index in edge]),
+            weights=[1.0 - t, t],
+            axis=0,
+        )
+
+    def get_point_on_vertex_edge(self, edge, t):
+        return np.average(
+            np.array([self.get_vertex(vertex_index) for vertex_index in edge]),
+            weights=[1.0 - t, t],
+            axis=0,
+        )
 
     # endregion
 
@@ -291,3 +330,6 @@ class FEMMesh:
 
     def get_face_edge(self, face_index, edge_index):
         return self.__kernel.face_edge(face_index, edge_index)
+
+    def get_face_center(self, face_index):
+        return self.__kernel.face_center(face_index)
