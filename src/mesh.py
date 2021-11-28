@@ -333,3 +333,16 @@ class FEMMesh:
 
     def get_face_center(self, face_index):
         return self.__kernel.face_center(face_index)
+
+    def shrink_buffers(self):
+        """
+        Shrinks all buffers of the mesh to the smallest possible size
+        """
+
+        new_kernel = Kernel()
+
+        for face_index in self.face_indices:
+            face = self.get_face(face_index)
+            new_kernel.add_new_face(face)
+
+        self.__kernel = new_kernel
