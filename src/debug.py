@@ -7,6 +7,7 @@ def main():
 
     mesh = FEMMesh.polygon(1, 5)
     mesh.subdivide_faces(2)
+    mesh.shrink_buffers()
 
     output_path = os.path.realpath(".\\tests\\test_output\\debug_output.3dm")
 
