@@ -128,14 +128,14 @@ class RhinoIO:
                 str(vertex_indices), RhinoIO.__vertex_to_point3d(center), face_attrs
             )
 
-        edge_attrs = rhino3dm.ObjectAttributes()
-        edge_attrs.LayerIndex = edge_layer_index
+        # edge_attrs = rhino3dm.ObjectAttributes()
+        # edge_attrs.LayerIndex = edge_layer_index
 
-        for edge in fem_mesh.node_edges:
-            center = fem_mesh.get_point_on_node_edge(edge, 0.5)
-            file3dm.Objects.AddTextDot(
-                str(edge), RhinoIO.__vertex_to_point3d(center), edge_attrs
-            )
+        # for edge in fem_mesh.node_edges:
+        #     center = fem_mesh.get_point_on_node_edge(edge, 0.5)
+        #     file3dm.Objects.AddTextDot(
+        #         str(edge), RhinoIO.__vertex_to_point3d(center), edge_attrs
+        #     )
 
     @staticmethod
     def convert_to_rhino(fem_mesh):
@@ -194,7 +194,10 @@ class RhinoIO:
             file = rhino3dm.File3dm()
 
             # Add the mesh to it's object table
-            file.Objects.Add(mesh)
+            mesh_layer_index = RhinoIO.__add_layer_to_file3dm(file, "Mesh")
+            mesh_attrs = rhino3dm.ObjectAttributes()
+            mesh_attrs.LayerIndex = mesh_layer_index
+            file.Objects.Add(mesh, mesh_attrs)
 
             # Try to write debug information to file
             if debug:
