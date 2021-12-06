@@ -1,6 +1,5 @@
 import Rhino.Geometry as rg
 import logging
-from proxy import CommandBuilder
 
 
 def __chunker(seq, size):
