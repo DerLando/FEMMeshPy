@@ -1,5 +1,22 @@
 from mesh import FEMMesh
 import rhino3dm
+import json
+import pickle
+
+
+class MeshBuffer(object):
+    def __init__(self, fem_mesh):
+
+        # shrink fem_mesh buffers
+        fem_mesh.shrink_buffers()
+
+        coords = []
+        for vert in fem_mesh.vertices:
+            for coord in vert:
+                coords.append(float(coord))
+
+        self.coords = coords
+        self.faces = [list(face) for face in fem_mesh.faces]
 
 
 class RhinoIO:
@@ -40,7 +57,8 @@ class RhinoIO:
 
         # match the face vertex count and add faces accordingly
         if length == 3:  # Simple triangle
-            mesh.Faces.AddFace(vertex_count, vertex_count + 1, vertex_count + 2)
+            mesh.Faces.AddFace(
+                vertex_count, vertex_count + 1, vertex_count + 2)
 
         elif length == 4:  # Simple quad
             mesh.Faces.AddFace(
@@ -57,7 +75,8 @@ class RhinoIO:
             average = [coord / length for coord in average]
 
             # add centroid to mesh
-            centroid_index = mesh.Vertices.Add(average[0], average[1], average[2])
+            centroid_index = mesh.Vertices.Add(
+                average[0], average[1], average[2])
 
             # empty lists to store ngon verts and faces
             ngon_vertex_indices = [vertex_count + i for i in range(length)]
@@ -125,7 +144,8 @@ class RhinoIO:
             vertex_indices = fem_mesh.get_face_indices(face_index)
             center = fem_mesh.get_face_center(face_index)
             file3dm.Objects.AddTextDot(
-                str(vertex_indices), RhinoIO.__vertex_to_point3d(center), face_attrs
+                str(vertex_indices), RhinoIO.__vertex_to_point3d(
+                    center), face_attrs
             )
 
         # edge_attrs = rhino3dm.ObjectAttributes()
@@ -168,6 +188,15 @@ class RhinoIO:
         raise NotImplementedError()
 
     @staticmethod
+    def convert_to_json(fem_mesh):
+        r_mesh = RhinoIO.convert_to_rhino(fem_mesh)
+        return r_mesh.Encode()
+
+    @staticmethod
+    def convert_to_bytes(fem_mesh):
+        return pickle.dumps(MeshBuffer(fem_mesh), 2)
+
+    @staticmethod
     def write_to_file(mesh, filename="output.3dm", version=6, debug=False):
         """
         Write the given mesh to a rhino (.3dm) file
@@ -206,7 +235,8 @@ class RhinoIO:
             # Try to write the file
             if not file.Write(filename, version):
                 print(
-                    "RhinoIO.write_to_file ERROR: Failed to write {}".format(filename)
+                    "RhinoIO.write_to_file ERROR: Failed to write {}".format(
+                        filename)
                 )
                 return False
 
