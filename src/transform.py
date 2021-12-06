@@ -91,11 +91,9 @@ def transform_point(matrix, point):
 if __name__ == "__main__":
     plane = Plane(np.array([5, 0, 0]), np.array([1, 0, 0]), np.array([1, 0, 1]))
     pt = plane.point_at(1, 1, 0)
+    print(pt)
     print(plane.x_axis, plane.y_axis, plane.z_axis)
 
-    # trans = transform_to_worldxy(
-    #     Plane(np.array([0, 0, 0]), np.array([1, 0, 0]), np.array([1, 0, 1]))
-    # )
     trans = transform_to_worldxy(plane)
 
     pt = transform_point(trans, pt)

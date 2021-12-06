@@ -4,11 +4,28 @@ import argparse
 import rhino_io
 import json
 import task
+from transform import transform_to_worldxy
+import arguments
+import logging
+import logging.config
+import sys
 
-CMD_POLYGON = "polygon"
-CMD_HOUSE = "house"
+# logging.config.dictConfig(
+#     {
+#         "version": 1,
+#         "disable_existing_loggers": True,
+#     }
+# )
 
-SERIALIZATION_FILE = "data.pkl"
+log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
+formatter = logging.Formatter(
+    fmt="%(asctime)s %(levelname)s: %(message)s", datefmt="%Y-%m-%d - %H:%M:%S"
+)
+fh = logging.FileHandler("server.log", "w")
+fh.setLevel(logging.DEBUG)
+fh.setFormatter(formatter)
+log.addHandler(fh)
 
 MESH_SINGLETON = FEMMesh()
 """
@@ -17,44 +34,7 @@ at any given time
 """
 
 
-def __deserialize_singleton():
-    with open(SERIALIZATION_FILE, "rb") as file:
-        MESH_SINGLETON = pickle.load(file)
-
-
-def __serialize_singleton():
-    with open(SERIALIZATION_FILE, "wb") as file:
-        pickle.dump(MESH_SINGLETON, file, 3)
-
-
-class Argument(object):
-    def __init__(self, name, arg_type, default=None, help=""):
-        self.name = name
-        self.arg_type = arg_type
-        self.default = default
-        self.help = help
-
-    def flag(self):
-        return f"--{self.name}"
-
-    def short_flag(self):
-        return f"-{self.name[0]}"
-
-    def __str__(self):
-        return self.flag()
-
-
-def arg_to_flag(arg, short=True):
-    short_flag = f"-{arg[0]}"
-    long_flag = f"--{arg}"
-
-    if short:
-        return short_flag
-    else:
-        return long_flag
-
-
-def add_Arguments(parser, arguments):
+def add_arguments(parser, arguments):
     for arg in arguments:
         parser.add_argument(
             arg.short_flag(),
@@ -69,66 +49,98 @@ def add_Arguments(parser, arguments):
 parser = argparse.ArgumentParser(description="Run FEM commands on a mesh")
 subparsers = parser.add_subparsers(dest="cmd_name")
 
+# create a quit command to break inner loop
+parser.add_argument("--quit", "-q", action="store_true", help="Quits the program")
+
 # create a base subparser with global commands
-GLOBAL_SUBDIVIDE_ARGUMENT = Argument(
-    "subdivide", int, help="Subdivide the mesh faces n times"
-)
-GLOBAL_TRANSFER_ARGUMENT = Argument(
-    "transfer", bool, help="Transfer the mesh as serialized bytes over stdout"
-)
 base_subparser = argparse.ArgumentParser(add_help=False)
-add_Arguments(base_subparser, [GLOBAL_SUBDIVIDE_ARGUMENT, GLOBAL_TRANSFER_ARGUMENT])
+add_arguments(base_subparser, [arguments.GLOBAL_SUBDIVIDE_ARGUMENT])
+base_subparser.add_argument(
+    arguments.GLOBAL_TRANSFER_ARGUMENT.flag(),
+    arguments.GLOBAL_TRANSFER_ARGUMENT.short_flag(),
+    help=arguments.GLOBAL_TRANSFER_ARGUMENT.help,
+    action="store_true",
+)
 
 # add polygon command
-POLYGON_RADIUS_ARGUMENT = Argument("radius", float, 1.0, "radius of polygon")
-POLYGON_SIDECOUNT_ARGUMENT = Argument(
-    "n_sides", int, 4, "number of sides in the polygon"
+poly_cmd = subparsers.add_parser(arguments.CMD_POLYGON, parents=[base_subparser])
+add_arguments(
+    poly_cmd, [arguments.POLYGON_RADIUS_ARGUMENT, arguments.POLYGON_SIDECOUNT_ARGUMENT]
 )
-poly_cmd = subparsers.add_parser(CMD_POLYGON, parents=[base_subparser])
-add_Arguments(poly_cmd, [POLYGON_RADIUS_ARGUMENT, POLYGON_SIDECOUNT_ARGUMENT])
 
 # add house command
-HOUSE_DEPTH_ARGUMENT = Argument("depth", float, 4.0, "depth of the generated house")
-house_cmd = subparsers.add_parser(CMD_HOUSE, parents=[base_subparser])
-add_Arguments(house_cmd, [HOUSE_DEPTH_ARGUMENT])
+house_cmd = subparsers.add_parser(arguments.CMD_HOUSE, parents=[base_subparser])
+add_arguments(house_cmd, [arguments.HOUSE_DEPTH_ARGUMENT])
 
+# add orient command
+orient_cmd = subparsers.add_parser(arguments.CMD_ORIENT, parents=[base_subparser])
+add_arguments(orient_cmd, [arguments.ORIENT_FACE_INDEX_ARGUMENT])
 
-def main():
+# add reset command
+reset_cmd = subparsers.add_parser(arguments.CMD_RESET, parents=[base_subparser])
 
-    # parse args
-    args = parser.parse_args()
+# add fall-through command
+noop_cmd = subparsers.add_parser(arguments.CMD_NOOP, parents=[base_subparser])
+
+while True:
+
+    # get raw input
+    astr = input()
+
+    # parse args from raw input
+    try:
+        args = parser.parse_args(astr.split())
+    except SystemExit:
+        log.warning("Failed to parse raw input")
+        continue
+
+    # check if quit was called, early break
+    if args.quit:
+        log.debug("Quitting Server")
+        break
 
     # match on args subcommand
-    if args.cmd_name == CMD_POLYGON:
+    # create a polygon
+    if args.cmd_name == arguments.CMD_POLYGON:
+        log.debug(
+            f"polygon, radius={args.__getattribute__(arguments.POLYGON_RADIUS_ARGUMENT.name)}, n_sides={args.__getattribute__(arguments.POLYGON_SIDECOUNT_ARGUMENT.name)}"
+        )
         MESH_SINGLETON = FEMMesh.polygon(
-            args.__getattribute__(POLYGON_RADIUS_ARGUMENT.name),
-            args.__getattribute__(POLYGON_SIDECOUNT_ARGUMENT.name),
+            args.__getattribute__(arguments.POLYGON_RADIUS_ARGUMENT.name),
+            args.__getattribute__(arguments.POLYGON_SIDECOUNT_ARGUMENT.name),
         )
 
-    elif args.cmd_name == CMD_HOUSE:
+    # create a house
+    elif args.cmd_name == arguments.CMD_HOUSE:
         MESH_SINGLETON = task.House(
             task.COORDINATES_FRONT_FACE,
-            args.__getattribute__(HOUSE_DEPTH_ARGUMENT.name),
+            args.__getattribute__(arguments.HOUSE_DEPTH_ARGUMENT.name),
         ).mesh
 
+    # orient the mesh singleton on the given face
+    elif args.cmd_name == arguments.CMD_ORIENT:
+        plane = MESH_SINGLETON.get_face_plane(
+            args.__getattribute__(arguments.ORIENT_FACE_INDEX_ARGUMENT.name)
+        )
+        MESH_SINGLETON.transform(transform_to_worldxy(plane))
+
+    # reset the mesh singleton
+    elif args.cmd_name == arguments.CMD_RESET:
+        MESH_SINGLETON = FEMMesh()
+
     # match on global flags
-    subd_level = args.__getattribute__(GLOBAL_SUBDIVIDE_ARGUMENT.name)
+    # face subdivision
+    subd_level = args.__getattribute__(arguments.GLOBAL_SUBDIVIDE_ARGUMENT.name)
     if subd_level is not None:
         MESH_SINGLETON.subdivide_faces(subd_level)
 
-    # match on retrieve flag
-    transfer = args.__getattribute__(GLOBAL_TRANSFER_ARGUMENT.name)
-    if transfer is not None:
+    # retrieve mesh as json data
+    transfer = args.__getattribute__(arguments.GLOBAL_TRANSFER_ARGUMENT.name)
+    if transfer:
         # write serialized mesh to stdout
+        log.debug("Transfer mesh singleton")
         buffer = rhino_io.MeshBuffer(MESH_SINGLETON)
         dump = json.dumps((buffer.coords, buffer.faces))
-        # dump = pickle.dumps(buffer.coords, protocol=2)
-        print(dump)
-        # print(pickle.dumps(rhino_io.MeshBuffer(MESH_SINGLETON), 2))
-    else:
-        # write serialized mesh to temp_file
-        __serialize_singleton()
-
-
-if __name__ == "__main__":
-    main()
+        sys.stdout.write(dump)
+        sys.stdout.write("\n")
+        sys.stdout.flush()

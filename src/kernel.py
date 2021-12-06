@@ -123,6 +123,9 @@ class Kernel:
         """
         return self.__node_buffer.get_vertex(vertex_index)
 
+    def set_vertex(self, vertex_index, value):
+        self.__node_buffer.set_vertex(vertex_index, value)
+
     def get_face(self, face_index):
         """
         Gets the face for the given index, if it exists

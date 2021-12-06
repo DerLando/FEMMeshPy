@@ -1,8 +1,15 @@
 from mesh import FEMMesh
 from rhino_io import RhinoIO
 import os
+import numpy as np
 
-COORDINATES_FRONT_FACE = [[0, 0, 0], [0, 0, 3], [1.5, 0, 4], [3, 0, 3], [3, 0, 0]]
+COORDINATES_FRONT_FACE = [
+    np.array([0, 0, 0]),
+    np.array([0, 0, 3]),
+    np.array([1.5, 0, 4]),
+    np.array([3, 0, 3]),
+    np.array([3, 0, 0]),
+]
 
 
 class House:
@@ -28,7 +35,7 @@ class House:
 
         # Calculate coordinates of back face by adding building depth to y
         return [
-            [coord[0], coord[1] + building_depth, coord[2]]
+            np.array([coord[0], coord[1] + building_depth, coord[2]])
             for coord in coordinates_front_face
         ]
 
