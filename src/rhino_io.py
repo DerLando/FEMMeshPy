@@ -1,5 +1,22 @@
 from mesh import FEMMesh
 import rhino3dm
+import json
+import pickle
+
+
+class MeshBuffer(object):
+    def __init__(self, fem_mesh):
+
+        # shrink fem_mesh buffers
+        fem_mesh.shrink_buffers()
+
+        coords = []
+        for vert in fem_mesh.vertices:
+            for coord in vert:
+                coords.append(float(round(coord, 3)))
+
+        self.coords = coords
+        self.faces = [list(face) for face in fem_mesh.faces]
 
 
 class RhinoIO:
@@ -166,6 +183,15 @@ class RhinoIO:
     @staticmethod
     def convert_to_fem(rhino_mesh):
         raise NotImplementedError()
+
+    @staticmethod
+    def convert_to_json(fem_mesh):
+        r_mesh = RhinoIO.convert_to_rhino(fem_mesh)
+        return r_mesh.Encode()
+
+    @staticmethod
+    def convert_to_bytes(fem_mesh):
+        return pickle.dumps(MeshBuffer(fem_mesh), 2)
 
     @staticmethod
     def write_to_file(mesh, filename="output.3dm", version=6, debug=False):

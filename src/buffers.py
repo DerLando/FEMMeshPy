@@ -356,6 +356,9 @@ class NodeBuffer:
 
         return self.__vertices[index]
 
+    def set_vertex(self, index, value):
+        self.__vertices[index] = value
+
     def get_parent_node(self, vertex_index):
         """
         Gets the parent node of the given vertex

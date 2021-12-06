@@ -18,7 +18,16 @@ class Plane:
             x_axis (array-like): The x-axis direction of the plane. Needs to be normalized.
             y_axis (array-like): The y-axis direction of the plane. Needs to be normalized.
         """
+
+        def __norm(vector):
+            return vector / np.linalg.norm(vector)
+
+        # TODO: test correct plane impl
+
+        x_axis = __norm(x_axis)
+
         normal = np.cross(x_axis, y_axis)
+        y_axis = __norm(-np.cross(x_axis, normal))
 
         matrix = np.array([x_axis, y_axis, normal, origin])
         matrix = matrix.transpose()
@@ -33,7 +42,7 @@ class Plane:
             array-like: The x-axis
         """
 
-        return self.__matrix[0, :-1]
+        return self.__matrix[:-1, 0]
 
     @property
     def y_axis(self):
@@ -44,7 +53,7 @@ class Plane:
             array-like: The y-axis
         """
 
-        return self.__matrix[1, :-1]
+        return self.__matrix[:-1, 1]
 
     @property
     def z_axis(self):
@@ -55,7 +64,7 @@ class Plane:
             array-like: The z_axis
         """
 
-        return self.__matrix[2, :-1]
+        return self.__matrix[:-1, 2]
 
     @property
     def origin(self):
@@ -66,7 +75,10 @@ class Plane:
             array-like: The origin
         """
 
-        return self.__matrix[3, :-1]
+        return self.__matrix[:-1, 3]
+
+    def get_matrix(self):
+        return self.__matrix.copy()
 
     @staticmethod
     def __to_homogenous(carthesian_vector):

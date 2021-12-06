@@ -74,6 +74,11 @@ class TestFaceTopology(unittest.TestCase):
 
         self.assertEqual(32, mesh.face_count)
 
+        mesh = FEMMesh.polygon(1, 5)
+        mesh.subdivide_faces(1)
+
+        self.assertEqual(5, mesh.face_count)
+
     def test_face_edges(self):
         logging.info("test_face_edges")
 

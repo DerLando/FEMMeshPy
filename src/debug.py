@@ -9,9 +9,12 @@ def main():
     mesh.subdivide_faces(2)
     mesh.shrink_buffers()
 
-    output_path = os.path.realpath(".\\tests\\test_output\\debug_output.3dm")
+    mesh = RhinoIO.convert_to_rhino(mesh)
+    print(mesh.Encode())
 
-    RhinoIO.write_to_file(mesh, filename=output_path, debug=True)
+    # output_path = os.path.realpath(".\\tests\\test_output\\debug_output.3dm")
+
+    # RhinoIO.write_to_file(mesh, filename=output_path, debug=True)
 
 
 if __name__ == "__main__":

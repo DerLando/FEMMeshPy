@@ -1,6 +1,7 @@
 import logging
 import math
 import numpy as np
+from transform import transform_point
 
 from kernel import Kernel
 
@@ -346,3 +347,13 @@ class FEMMesh:
             new_kernel.add_new_face(face)
 
         self.__kernel = new_kernel
+
+    def __replace_vertex(self, index, new_vert):
+        # DANGEROUS!!!
+        self.__kernel.set_vertex(index, new_vert)
+
+    def transform(self, matrix):
+        for index in self.vertex_indices:
+            self.__replace_vertex(
+                index, transform_point(matrix, self.get_vertex(index))
+            )
