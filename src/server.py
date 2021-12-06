@@ -1,3 +1,4 @@
+import numpy as np
 from mesh import FEMMesh
 import pickle
 import argparse
@@ -119,10 +120,10 @@ while True:
 
     # orient the mesh singleton on the given face
     elif args.cmd_name == arguments.CMD_ORIENT:
-        plane = MESH_SINGLETON.get_face_plane(
-            args.__getattribute__(arguments.ORIENT_FACE_INDEX_ARGUMENT.name)
-        )
+        face_index = args.__getattribute__(arguments.ORIENT_FACE_INDEX_ARGUMENT.name)
+        plane = MESH_SINGLETON.get_face_plane(face_index)
         MESH_SINGLETON.transform(transform_to_worldxy(plane))
+        # MESH_SINGLETON.transform(np.identity(4))
 
     # reset the mesh singleton
     elif args.cmd_name == arguments.CMD_RESET:
@@ -138,9 +139,9 @@ while True:
     transfer = args.__getattribute__(arguments.GLOBAL_TRANSFER_ARGUMENT.name)
     if transfer:
         # write serialized mesh to stdout
-        log.debug("Transfer mesh singleton")
         buffer = rhino_io.MeshBuffer(MESH_SINGLETON)
         dump = json.dumps((buffer.coords, buffer.faces))
+        log.debug("Transfer mesh singleton: {}".format(dump))
         sys.stdout.write(dump)
         sys.stdout.write("\n")
         sys.stdout.flush()

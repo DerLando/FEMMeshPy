@@ -3,15 +3,43 @@ import subprocess
 import json
 from subprocess import Popen, PIPE
 import arguments
+import logging
+import threading
+import Queue
+import time
+
+log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
+formatter = logging.Formatter(
+    fmt="%(asctime)s %(levelname)s: %(message)s", datefmt="%Y-%m-%d - %H:%M:%S"
+)
+fh = logging.FileHandler("proxy.log", "w")
+fh.setLevel(logging.DEBUG)
+fh.setFormatter(formatter)
+log.addHandler(fh)
+
+
+def output_reader(proc, outq):
+    for line in proc.stdout:
+        outq.put(line)
+
+    # works only in python3:
+    # for line in iter(proc.stdout.readline, ''):
+    #     outq.put(line)
 
 
 class Proxy(object):
     def __init__(self):
-        self.__server_process = Popen(
-            "python3 -u server.py", stdin=PIPE, stdout=PIPE, stderr=PIPE
+        self.__server_process = Popen("python3 -u server.py", stdin=PIPE, stdout=PIPE)
+        self.__line_queue = Queue.Queue()
+        self.__reader_thread = threading.Thread(
+            target=output_reader, args=(self.__server_process, self.__line_queue)
         )
 
+        self.__reader_thread.start()
+
     def __send_cmd(self, cmd):
+        log.debug("Send command: {}".format(cmd))
         cmd_bytes = "{}\n".format(cmd).encode("utf-8")
         self.__server_process.stdin.write(cmd_bytes)
         self.__server_process.stdin.flush()
@@ -28,13 +56,33 @@ class Proxy(object):
         cmd = CommandBuilder().transfer().build()
         self.__send_cmd(cmd)
 
-        result = json.loads(self.__server_process.stdout.readline())
+        return self.__parse_received()
+
+    def execute_command(self, cmd):
+        self.__send_cmd(cmd)
+
+        if arguments.GLOBAL_TRANSFER_ARGUMENT.short_flag() in cmd:
+            return self.__parse_received()
+
+    def __parse_received(self):
+        for _ in range(10):
+            try:
+                line = self.__line_queue.get(block=False)
+                break
+            except Queue.Empty:
+                log.warning("Tried to parse empty line queue")
+                time.sleep(0.2)
+                continue
+        log.debug("parse dump: {}".format(line))
+        result = json.loads(line)
         return (result[0], result[1])
 
     def close(self):
         cmd = CommandBuilder().quit().build()
         self.__send_cmd(cmd)
-        print(self.__server_process.wait(timeout=1))
+        log.debug(
+            "Server process exited with code {}".format(self.__server_process.wait())
+        )
 
 
 class CommandBuilder(object):
@@ -109,8 +157,10 @@ class CommandBuilder(object):
 
 if __name__ == "__main__":
     proxy = Proxy()
-    proxy.polygon()
-    proxy.subdivide(1)
-    print(proxy.receive())
+    for i in range(6):
+
+        proxy.execute_command(CommandBuilder().house(10.0).build())
+        cmd = CommandBuilder().orient(i).subdivide(1).transfer().build()
+        proxy.execute_command(cmd)
 
     proxy.close()

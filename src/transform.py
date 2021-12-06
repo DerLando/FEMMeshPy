@@ -65,8 +65,6 @@ def transform_to_worldxy(plane):
     angle_x = __angle_between(np.array([1, 0, 0]), plane.x_axis)
     angle_z = __angle_between(np.array([0, 0, 1]), plane.z_axis)
 
-    print(angle_x, angle_z)
-
     rot_x = __rotation_matrix_around_z(angle_x)
     rot_z = __rotation_matrix_around_x(angle_z)
 
@@ -77,7 +75,7 @@ def transform_to_worldxy(plane):
     # else:
     #     rot = np.matmul(rot_x, rot_z)
 
-    return rot_x.dot(rot_z).dot(translation)
+    return rot_z.dot(rot_x).dot(translation)
 
     rot = np.matmul(rot_x, rot_z)
 
@@ -88,13 +86,13 @@ def transform_point(matrix, point):
     return matrix.dot(np.append(point, [1]))[:3]
 
 
-if __name__ == "__main__":
-    plane = Plane(np.array([5, 0, 0]), np.array([1, 0, 0]), np.array([1, 0, 1]))
-    pt = plane.point_at(1, 1, 0)
-    print(pt)
-    print(plane.x_axis, plane.y_axis, plane.z_axis)
+# if __name__ == "__main__":
+#     plane = Plane(np.array([5, 0, 0]), np.array([1, 0, 0]), np.array([1, 0, 1]))
+#     pt = plane.point_at(1, 1, 0)
+#     print(pt)
+#     print(plane.x_axis, plane.y_axis, plane.z_axis)
 
-    trans = transform_to_worldxy(plane)
+#     trans = transform_to_worldxy(plane)
 
-    pt = transform_point(trans, pt)
-    print(pt)
+#     pt = transform_point(trans, pt)
+#     print(pt)

@@ -13,10 +13,10 @@ class Argument(object):
         self.help = help
 
     def flag(self):
-        return f"--{self.name}"
+        return "--{}".format(self.name)
 
     def short_flag(self):
-        return f"-{self.name[0]}"
+        return "-{}".format(self.name[0])
 
     def __str__(self):
         return self.flag()
