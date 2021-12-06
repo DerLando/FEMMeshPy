@@ -28,6 +28,14 @@ class TestFaceTopology(unittest.TestCase):
             test_pt, plane.point_at(projected[0], projected[1], projected[2])
         )
 
+    def test_plane_input(self):
+        plane = Plane(np.array([5, 1, 0]), np.array([1, 0, 0]), np.array([1, 1, 0]))
+        print(plane.origin)
+        np.testing.assert_array_almost_equal(plane.origin, np.array([5, 1, 0]))
+        np.testing.assert_array_almost_equal(plane.x_axis, np.array([1, 0, 0]))
+        np.testing.assert_array_almost_equal(plane.y_axis, np.array([0, 1, 0]))
+        np.testing.assert_array_almost_equal(plane.z_axis, np.array([0, 0, 1]))
+
     def test_point_on_edge(self):
         mesh = FEMMesh()
         mesh.add_face([np.array([0, 0, 0]), np.array([1, 0, 0]), np.array([0.5, 1, 0])])

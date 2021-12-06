@@ -9,7 +9,7 @@ class Command(object):
             return False
 
         output = subprocess.check_output(self.cmd_string)
-        if output != "success":
+        if output:
             result = json.loads(output)
             return (result[0], result[1])
 

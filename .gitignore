@@ -137,3 +137,7 @@ test_output/
 # vscode settings
 .vscode
 vscode/
+
+# pickle stuff
+.pkl
+*.pkl
