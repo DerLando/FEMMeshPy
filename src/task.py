@@ -2,6 +2,8 @@ from mesh import FEMMesh
 from rhino_io import RhinoIO
 import os
 
+COORDINATES_FRONT_FACE = [[0, 0, 0], [0, 0, 3], [1.5, 0, 4], [3, 0, 3], [3, 0, 0]]
+
 
 class House:
     def __init__(self, front_points, depth):
@@ -82,14 +84,11 @@ def main():
     Task related implementation of Semester project
     """
 
-    # Initial front face coordinates, hardcoded
-    coordinates_front_face = [[0, 0, 0], [0, 0, 3], [1.5, 0, 4], [3, 0, 3], [3, 0, 0]]
-
     # The depth of the building (distance from front to back face)
     building_depth = 5.0
 
     # Generate House from points and depth
-    house = House(coordinates_front_face, building_depth)
+    house = House(COORDINATES_FRONT_FACE, building_depth)
 
     # Subdivide House faces
     house.mesh.subdivide_faces(3)

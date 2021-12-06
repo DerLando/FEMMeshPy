@@ -1,101 +1,70 @@
 import logging
-import pickle
-import xmlrpclib
-from subprocess import Popen, PIPE, STDOUT
-import Rhino.Geometry as rg
-import itertools
+import subprocess
+import json
 
 
-SERVER_NAMESPACE = "localhost"
-SERVER_PORT = 9000
-RHINO_IO_TEMP_FILENAME = "temp_proxy_io.3dm"
+class Command(object):
+    def execute(self):
+        if self.cmd_string is None:
+            return False
+
+        output = subprocess.check_output(self.cmd_string)
+        if output != "success":
+            result = json.loads(output)
+            return (result[0], result[1])
 
 
-def chunker(seq, size):
-    return (seq[pos : pos + size] for pos in xrange(0, len(seq), size))
+class CommandBuilder(object):
+    def __init__(self):
+        self.__command = "python3 server.py"
+        self.__transfer = None
+        self.__subdivide = None
+        self.__subcommand = None
 
-
-class Proxy(object):
-    def __enter__(self):
-        # the return value is passed to the 'as' param in a with block
+    def transfer(self):
+        self.__transfer = True
         return self
 
-    def __exit__(self, type, value, tb):
-        logging.debug("Proxy shutdown")
-        self.server_process.terminate()
+    def subdivide(self, n_subd):
+        self.__subdivide = n_subd
+        return self
 
-    def __init__(self):
+    def polygon(self, radius=None, n_sides=None):
+        self.__subcommand = "polygon"
+        if radius is not None:
+            self.__subcommand += " -r {}".format(radius)
+        if n_sides is not None:
+            self.__subcommand += " -n {}".format(n_sides)
+        return self
 
-        # spawn the server thread
-        self.__spawn_server_thread()
+    def house(self, depth=None):
+        self.__subcommand = "house"
+        if depth is not None:
+            self.__subcommand += " -d {}".format(depth)
+        return self
 
-        # initialize the server proxy
-        self.server_proxy = xmlrpclib.ServerProxy(
-            "http://{}:{}".format(SERVER_NAMESPACE, SERVER_PORT)
-        )
+    def __command_string(self):
+        if self.__subcommand is None:
+            return
 
-    def __spawn_server_thread(self):
-        self.server_process = Popen(
-            "python3 server.py", shell=True, stdout=PIPE, stderr=PIPE
-        )
+        cmd = self.__command
+        cmd += " {}".format(self.__subcommand)
 
-    @staticmethod
-    def __mesh_from_buffer(buffer):
-        mesh = rg.Mesh()
-        for chunk in chunker(buffer.coords, 3):
-            mesh.Vertices.Add(chunk[0], chunk[1], chunk[2])
+        if self.__subdivide is not None:
+            cmd += " -s {}".format(self.__subdivide)
 
-        for face in buffer.faces:
-            mesh.Faces.AddFace(next(face), next(face), next(face), next(face))
+        if self.__transfer is not None:
+            cmd += " -t {}".format(self.__transfer)
 
-        return mesh
+        return cmd
 
-    @property
-    def mesh(self):
-        return self.server_proxy
-
-    def get_mesh(self):
-        bytes = self.mesh.retrieve()
-        buffer = pickle.load(bytes)
-        return self.__mesh_from_buffer(buffer)
-
-    @staticmethod
-    def convert_to_native(retrieved_mesh):
-        """
-        And this is where the dream dies.
-        There is no way in Rhinocommon v6 to de-serialize the json object from rhino3dm.
-        So I can create and manipulate the mesh on the server all fine, but in the end,
-        we will need to go through file bound io.
-
-        One last idea, write file3dm to clipboard and insert in rhino...
-        """
-        return rg.Mesh.FromJson(retrieved_mesh)
-
-
-def main():
-
-    retrieved = None
-
-    with Proxy() as proxy:
-
-        print(proxy.server_proxy.ping())
-        # print(proxy.server_proxy.mesh.polygon(1, 4))
-
-        print(proxy.mesh.add_face([[0, 0, 0], [1.0, 0, 0], [0.5, 1.0, 0.0]]))
-
-        # try:
-        #     print(proxy.mesh.retrieve())
-        # except xmlrpclib.Error as e:
-        #     print(e.faultString)
-
-        retrieved = proxy.get_mesh()
-
-        print("Success")
-
-    print(retrieved)
-    # mesh = Proxy.convert_to_native(retrieved)
-    # print(mesh)
+    def build(self):
+        cmd = Command()
+        cmd.cmd_string = self.__command_string()
+        return cmd
 
 
 if __name__ == "__main__":
-    main()
+    cmd = CommandBuilder().house(8).subdivide(2).transfer().build()
+    print(cmd)
+    print(cmd.execute())
